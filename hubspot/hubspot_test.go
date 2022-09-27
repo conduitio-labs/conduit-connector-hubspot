@@ -41,7 +41,7 @@ func setup() (client *Client, mux *http.ServeMux, teardown func()) {
 	return client, mux, server.Close
 }
 
-func TestNewRequest(t *testing.T) {
+func TestClient_newRequest(t *testing.T) {
 	t.Parallel()
 
 	client := NewClient("secret", http.DefaultClient)
@@ -76,7 +76,7 @@ func TestNewRequest(t *testing.T) {
 	}
 }
 
-func TestNewRequest_invalidJSON(t *testing.T) {
+func TestClient_newRequest_invalidJSON(t *testing.T) {
 	t.Parallel()
 
 	client, _, teardown := setup()
@@ -96,7 +96,7 @@ func TestNewRequest_invalidJSON(t *testing.T) {
 	}
 }
 
-func TestNewRequest_badURL(t *testing.T) {
+func TestClient_newRequest_badURL(t *testing.T) {
 	t.Parallel()
 
 	client, _, teardown := setup()
@@ -116,7 +116,7 @@ func TestNewRequest_badURL(t *testing.T) {
 	}
 }
 
-func TestNewRequest_badMethod(t *testing.T) {
+func TestClient_newRequest_badMethod(t *testing.T) {
 	t.Parallel()
 
 	client, _, teardown := setup()
@@ -130,7 +130,7 @@ func TestNewRequest_badMethod(t *testing.T) {
 	}
 }
 
-func TestDo_get(t *testing.T) {
+func TestClient_do_get(t *testing.T) {
 	t.Parallel()
 
 	client, mux, teardown := setup()
@@ -178,7 +178,7 @@ func TestDo_get(t *testing.T) {
 	}
 }
 
-func TestDo_post(t *testing.T) {
+func TestClient_do_post(t *testing.T) {
 	t.Parallel()
 
 	client, mux, teardown := setup()
@@ -227,7 +227,7 @@ func TestDo_post(t *testing.T) {
 	}
 }
 
-func TestDo_httpError(t *testing.T) {
+func TestClient_do_httpError(t *testing.T) {
 	t.Parallel()
 
 	client, mux, teardown := setup()
@@ -253,7 +253,7 @@ func TestDo_httpError(t *testing.T) {
 	}
 }
 
-func TestDo_nilURL(t *testing.T) {
+func TestClient_do_nilURL(t *testing.T) {
 	t.Parallel()
 
 	client, mux, teardown := setup()
@@ -280,7 +280,7 @@ func TestDo_nilURL(t *testing.T) {
 	}
 }
 
-func TestDo_invalidJSON(t *testing.T) {
+func TestClient_do_invalidJSON(t *testing.T) {
 	t.Parallel()
 
 	client, mux, teardown := setup()
