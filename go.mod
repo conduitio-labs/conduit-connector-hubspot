@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/conduitio/conduit-connector-sdk v0.2.1-0.20220908065345-c14f70ebbd64
 	github.com/go-playground/validator/v10 v10.11.1
+	github.com/google/go-querystring v1.1.0
 	go.uber.org/multierr v1.8.0
 )
 
