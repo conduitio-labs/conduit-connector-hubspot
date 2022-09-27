@@ -20,7 +20,7 @@ import (
 	"net/http"
 )
 
-// ResourcesPaths holds a mapping of resources and their list endpoints.
+// ResourcesPaths holds a mapping of supported resources and their list endpoints.
 var ResourcesPaths = map[string]string{
 	// https://developers.hubspot.com/docs/api/cms/blog-authors
 	"cms.blogs.authors": "/cms/v3/blogs/authors",
