@@ -19,11 +19,12 @@ import "fmt"
 // UnexpectedStatusCodeError occurs when a response from the HubSpot API has non-200 status code.
 type UnexpectedStatusCodeError struct {
 	StatusCode int
+	Body       []byte
 }
 
 // Error returns a formated error message for the UnexpectedStatusCodeError.
 func (e *UnexpectedStatusCodeError) Error() string {
-	return fmt.Sprintf("unexpected status code %d", e.StatusCode)
+	return fmt.Sprintf("unexpected status code %d, body: %s", e.StatusCode, e.Body)
 }
 
 // UnsupportedResourceError occurs when an unsupported resource is provided.

@@ -88,9 +88,16 @@ func (c *Client) do(req *http.Request, out any) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return &UnexpectedStatusCodeError{
+		unexpectedStatusCodeErr := &UnexpectedStatusCodeError{
 			StatusCode: resp.StatusCode,
 		}
+
+		unexpectedStatusCodeErr.Body, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("read resp body: %w", err)
+		}
+
+		return unexpectedStatusCodeErr
 	}
 
 	switch out := out.(type) {
