@@ -36,7 +36,24 @@ func TestParseConfig(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "success",
+			name: "success_required_and_default_values",
+			args: args{
+				cfg: map[string]string{
+					config.KeyAccessToken: "access_token",
+					config.KeyResource:    "contacts",
+				},
+			},
+			want: Config{
+				Config: config.Config{
+					AccessToken: "access_token",
+					Resource:    "contacts",
+				},
+				PollingPeriod: defaultPollingPeriod,
+			},
+			wantErr: false,
+		},
+		{
+			name: "success_required_and_custom_values",
 			args: args{
 				cfg: map[string]string{
 					config.KeyAccessToken:  "access_token",
