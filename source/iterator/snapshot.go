@@ -143,6 +143,7 @@ func (s *Snapshot) loadRecords(ctx context.Context) error {
 func (s *Snapshot) getItemPosition(item map[string]any) (*Position, error) {
 	itemIDStr, ok := item["id"].(string)
 	if !ok {
+		// this shouldn't happen cause HubSpot API v3 returns items with string identifiers.
 		return nil, errors.New("item's id is not a string")
 	}
 
