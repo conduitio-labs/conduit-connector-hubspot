@@ -132,7 +132,9 @@ func (s *Snapshot) loadRecords(ctx context.Context) error {
 		}
 
 		s.records <- sdk.Util.Source.NewRecordSnapshot(
-			sdkPosition, metadata, sdk.StructuredData{"id": s.position.LastID}, sdk.StructuredData(item),
+			sdkPosition, metadata,
+			sdk.StructuredData{hubspot.ResultsFieldID: s.position.LastID},
+			sdk.StructuredData(item),
 		)
 	}
 
@@ -141,7 +143,7 @@ func (s *Snapshot) loadRecords(ctx context.Context) error {
 
 // getItemPosition grabs an id field from a provided item and constructs a [Position] based on its value.
 func (s *Snapshot) getItemPosition(item map[string]any) (*Position, error) {
-	itemIDStr, ok := item["id"].(string)
+	itemIDStr, ok := item[hubspot.ResultsFieldID].(string)
 	if !ok {
 		// this shouldn't happen cause HubSpot API v3 returns items with string identifiers.
 		return nil, errors.New("item's id is not a string")
@@ -162,7 +164,7 @@ func (s *Snapshot) getItemPosition(item map[string]any) (*Position, error) {
 func (s *Snapshot) getItemMetadata(item map[string]any) (metadata sdk.Metadata, err error) {
 	createdAt := time.Now()
 
-	if createdAtStr, ok := item["createdAt"].(string); ok {
+	if createdAtStr, ok := item[hubspot.ResultsFieldCreatedAt].(string); ok {
 		createdAt, err = time.Parse(time.RFC3339, createdAtStr)
 		if err != nil {
 			return nil, fmt.Errorf("parse createdAt: %w", err)

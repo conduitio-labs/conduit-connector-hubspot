@@ -20,6 +20,13 @@ import (
 	"net/http"
 )
 
+const (
+	// ResultsFieldID defines a field key for item ID.
+	ResultsFieldID string = "id"
+	// ResultsFieldCreatedAt defines a field key for item creation date.
+	ResultsFieldCreatedAt string = "createdAt"
+)
+
 // ResourcesPaths holds a mapping of supported resources and their list endpoints.
 var ResourcesPaths = map[string]string{
 	// https://developers.hubspot.com/docs/api/cms/blog-authors
