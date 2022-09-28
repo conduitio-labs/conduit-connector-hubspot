@@ -16,7 +16,6 @@ package iterator
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -146,7 +145,7 @@ func (s *Snapshot) getItemPosition(item map[string]any) (*Position, error) {
 	itemIDStr, ok := item[hubspot.ResultsFieldID].(string)
 	if !ok {
 		// this shouldn't happen cause HubSpot API v3 returns items with string identifiers.
-		return nil, errors.New("item's id is not a string")
+		return nil, ErrItemIDIsNotAString
 	}
 
 	itemID, err := strconv.Atoi(itemIDStr)

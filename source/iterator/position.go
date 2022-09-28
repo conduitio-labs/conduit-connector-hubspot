@@ -16,15 +16,10 @@ package iterator
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
-
-// ErrEmptyPosition occurs when a provided SDK's position is empty.
-// It's used as a sentinel error within the [ParsePosition] method.
-var ErrEmptyPosition = errors.New("position is empty")
 
 // Position is an iterator's position.
 // It consists of the last processed element's id.
