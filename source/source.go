@@ -58,6 +58,12 @@ func (s *Source) Parameters() map[string]sdk.Parameter {
 			Required:    true,
 			Description: "The name of a HubSpot resource the connector will work with.",
 		},
+		config.KeyMaxRetries: {
+			Default:  "4",
+			Required: false,
+			Description: "The number of HubSpot API request retries " +
+				"that will be tried before giving up if a request fails.",
+		},
 		ConfigKeyPollingPeriod: {
 			Default:     "5s",
 			Required:    false,
@@ -85,6 +91,7 @@ func (s *Source) Configure(ctx context.Context, cfg map[string]string) (err erro
 // Open makes sure everything is prepared to read records.
 func (s *Source) Open(ctx context.Context, sdkPosition sdk.Position) error {
 	retryableHTTPClient := retryablehttp.NewClient()
+	retryableHTTPClient.RetryMax = s.config.MaxRetries
 	retryableHTTPClient.Logger = sdk.Logger(ctx)
 
 	hubspotClient := hubspot.NewClient(s.config.AccessToken, retryableHTTPClient.StandardClient())

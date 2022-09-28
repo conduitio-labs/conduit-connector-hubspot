@@ -47,6 +47,7 @@ func TestParseConfig(t *testing.T) {
 				Config: config.Config{
 					AccessToken: "access_token",
 					Resource:    "contacts",
+					MaxRetries:  config.DefaultMaxRetries,
 				},
 				PollingPeriod: defaultPollingPeriod,
 				BufferSize:    defaultBufferSize,
@@ -59,6 +60,7 @@ func TestParseConfig(t *testing.T) {
 				cfg: map[string]string{
 					config.KeyAccessToken:  "access_token",
 					config.KeyResource:     "contacts",
+					config.KeyMaxRetries:   "10",
 					ConfigKeyPollingPeriod: "10s",
 					ConfigKeyBufferSize:    "500",
 				},
@@ -67,6 +69,7 @@ func TestParseConfig(t *testing.T) {
 				Config: config.Config{
 					AccessToken: "access_token",
 					Resource:    "contacts",
+					MaxRetries:  10,
 				},
 				PollingPeriod: time.Second * 10,
 				BufferSize:    500,

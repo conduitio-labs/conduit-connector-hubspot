@@ -17,6 +17,7 @@ package config
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/conduitio-labs/conduit-connector-hubspot/validator"
 )
@@ -26,7 +27,12 @@ const (
 	KeyAccessToken = "accessToken"
 	// KeyResource is a config name for a resource.
 	KeyResource = "resource"
+	// KeyMaxRetries is a config name for max retries.
+	KeyMaxRetries = "maxRetries"
 )
+
+// DefaultMaxRetries is a default MaxRetries's value used if the MaxRetries field is empty.
+const DefaultMaxRetries = 4
 
 // Config contains configurable values
 // shared between source and destination.
@@ -35,6 +41,9 @@ type Config struct {
 	AccessToken string `key:"accessToken" validate:"required"`
 	// Resource defines a HubSpot resource that the connector will work with.
 	Resource string `key:"resource" validate:"required"`
+	// MaxRetries is the number of HubSpot API request retries attempts
+	// that will be tried before giving up if a request fails.
+	MaxRetries int `key:"maxRetries" validate:"gte=1"`
 }
 
 // Parse seeks to parse a provided map[string]string into a Config struct.
@@ -42,6 +51,17 @@ func Parse(cfg map[string]string) (Config, error) {
 	config := Config{
 		AccessToken: cfg[KeyAccessToken],
 		Resource:    cfg[KeyResource],
+		MaxRetries:  DefaultMaxRetries,
+	}
+
+	// parse maxRetries if it's not empty.
+	if maxRetriesStr := cfg[KeyMaxRetries]; maxRetriesStr != "" {
+		maxRetries, err := strconv.Atoi(maxRetriesStr)
+		if err != nil {
+			return Config{}, fmt.Errorf("parse max retries: %w", err)
+		}
+
+		config.MaxRetries = maxRetries
 	}
 
 	if err := validator.ValidateStruct(config); err != nil {
