@@ -49,6 +49,7 @@ func TestParseConfig(t *testing.T) {
 					Resource:    "contacts",
 				},
 				PollingPeriod: defaultPollingPeriod,
+				BufferSize:    defaultBufferSize,
 			},
 			wantErr: false,
 		},
@@ -59,6 +60,7 @@ func TestParseConfig(t *testing.T) {
 					config.KeyAccessToken:  "access_token",
 					config.KeyResource:     "contacts",
 					ConfigKeyPollingPeriod: "10s",
+					ConfigKeyBufferSize:    "500",
 				},
 			},
 			want: Config{
@@ -67,6 +69,7 @@ func TestParseConfig(t *testing.T) {
 					Resource:    "contacts",
 				},
 				PollingPeriod: time.Second * 10,
+				BufferSize:    500,
 			},
 			wantErr: false,
 		},
@@ -88,6 +91,42 @@ func TestParseConfig(t *testing.T) {
 					config.KeyAccessToken:  "access_token",
 					config.KeyResource:     "contacts",
 					ConfigKeyPollingPeriod: "ten seconds",
+				},
+			},
+			want:    Config{},
+			wantErr: true,
+		},
+		{
+			name: "fail_invalid_buffer_size_not_a_number",
+			args: args{
+				cfg: map[string]string{
+					config.KeyAccessToken: "access_token",
+					config.KeyResource:    "contacts",
+					ConfigKeyBufferSize:   "ten",
+				},
+			},
+			want:    Config{},
+			wantErr: true,
+		},
+		{
+			name: "fail_invalid_buffer_size_lte",
+			args: args{
+				cfg: map[string]string{
+					config.KeyAccessToken: "access_token",
+					config.KeyResource:    "contacts",
+					ConfigKeyBufferSize:   "0",
+				},
+			},
+			want:    Config{},
+			wantErr: true,
+		},
+		{
+			name: "fail_invalid_buffer_size_gte",
+			args: args{
+				cfg: map[string]string{
+					config.KeyAccessToken: "access_token",
+					config.KeyResource:    "contacts",
+					ConfigKeyBufferSize:   "1001",
 				},
 			},
 			want:    Config{},

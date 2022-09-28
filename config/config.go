@@ -31,7 +31,7 @@ const (
 // Config contains configurable values
 // shared between source and destination.
 type Config struct {
-	// AccessToken is a private app's access token for accessing HubSpot API.
+	// AccessToken is a private app's access token for accessing the HubSpot API.
 	AccessToken string `key:"accessToken" validate:"required"`
 	// Resource defines a HubSpot resource that the connector will work with.
 	Resource string `key:"resource" validate:"required"`
@@ -45,7 +45,7 @@ func Parse(cfg map[string]string) (Config, error) {
 	}
 
 	if err := validator.ValidateStruct(config); err != nil {
-		return Config{}, fmt.Errorf("validate struct: %w", err)
+		return Config{}, fmt.Errorf("validate common config: %w", err)
 	}
 
 	return config, nil
