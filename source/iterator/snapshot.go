@@ -81,7 +81,7 @@ func (s *Snapshot) Next(ctx context.Context) (sdk.Record, error) {
 	}
 }
 
-// poll polls items every specified time period.
+// poll polls items at the specified time intervals.
 func (s *Snapshot) poll(ctx context.Context) {
 	ticker := time.NewTicker(s.pollingPeriod)
 
