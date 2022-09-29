@@ -40,13 +40,13 @@ func TestParseConfig(t *testing.T) {
 			args: args{
 				cfg: map[string]string{
 					config.KeyAccessToken: "access_token",
-					config.KeyResource:    "contacts",
+					config.KeyResource:    "crm.contacts",
 				},
 			},
 			want: Config{
 				Config: config.Config{
 					AccessToken: "access_token",
-					Resource:    "contacts",
+					Resource:    "crm.contacts",
 					MaxRetries:  config.DefaultMaxRetries,
 				},
 				PollingPeriod: defaultPollingPeriod,
@@ -59,7 +59,7 @@ func TestParseConfig(t *testing.T) {
 			args: args{
 				cfg: map[string]string{
 					config.KeyAccessToken:  "access_token",
-					config.KeyResource:     "contacts",
+					config.KeyResource:     "crm.contacts",
 					config.KeyMaxRetries:   "10",
 					ConfigKeyPollingPeriod: "10s",
 					ConfigKeyBufferSize:    "500",
@@ -68,7 +68,7 @@ func TestParseConfig(t *testing.T) {
 			want: Config{
 				Config: config.Config{
 					AccessToken: "access_token",
-					Resource:    "contacts",
+					Resource:    "crm.contacts",
 					MaxRetries:  10,
 				},
 				PollingPeriod: time.Second * 10,
