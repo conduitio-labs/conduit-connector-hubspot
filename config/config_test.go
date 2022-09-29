@@ -43,6 +43,7 @@ func TestParse(t *testing.T) {
 			want: Config{
 				AccessToken: "access_token",
 				Resource:    "contacts",
+				MaxRetries:  DefaultMaxRetries,
 			},
 			wantErr: false,
 		},
@@ -61,6 +62,18 @@ func TestParse(t *testing.T) {
 			args: args{
 				cfg: map[string]string{
 					KeyAccessToken: "access_token",
+				},
+			},
+			want:    Config{},
+			wantErr: true,
+		},
+		{
+			name: "fail_invalid_max_retries",
+			args: args{
+				cfg: map[string]string{
+					KeyAccessToken: "access_token",
+					KeyResource:    "contacts",
+					KeyMaxRetries:  "-1",
 				},
 			},
 			want:    Config{},

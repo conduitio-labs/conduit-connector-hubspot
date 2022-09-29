@@ -12,17 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package hubspot implements HubSpot connector for Conduit.
-// It provides both, a source and a destination HubSpot connector.
-package hubspot
+package iterator
 
-import (
-	"github.com/conduitio-labs/conduit-connector-hubspot/source"
-	sdk "github.com/conduitio/conduit-connector-sdk"
+import "errors"
+
+var (
+	// ErrEmptyPosition occurs when a provided SDK's position is empty.
+	// It's used as a sentinel error within the [ParsePosition] method.
+	ErrEmptyPosition = errors.New("position is empty")
+	// ErrItemIDIsNotAString shouldn't happen cause HubSpot API v3 returns items with string identifiers
+	// but it exists as a last resort.
+	ErrItemIDIsNotAString = errors.New("item's id is not a string")
 )
-
-var Connector = sdk.Connector{
-	NewSpecification: Specification,
-	NewSource:        source.NewSource,
-	NewDestination:   nil,
-}

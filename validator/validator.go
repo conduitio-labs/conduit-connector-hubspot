@@ -53,8 +53,13 @@ func ValidateStruct(data any) error {
 			for _, fieldErr := range validationErrs {
 				fieldName := getFieldKey(data, fieldErr.StructField())
 
-				if fieldErr.Tag() == "required" {
+				switch fieldErr.Tag() {
+				case "required":
 					err = multierr.Append(err, requiredErr(fieldName))
+				case "gte":
+					err = multierr.Append(err, gteErr(fieldName, fieldErr.Param()))
+				case "lte":
+					err = multierr.Append(err, lteErr(fieldName, fieldErr.Param()))
 				}
 			}
 		}
@@ -67,6 +72,16 @@ func ValidateStruct(data any) error {
 // requiredErr returns the formatted required error.
 func requiredErr(name string) error {
 	return fmt.Errorf("%q value must be set", name)
+}
+
+// gteErr returns the formatted gte error.
+func gteErr(name, gte string) error {
+	return fmt.Errorf("%q value must be greater than or equal to %s", name, gte)
+}
+
+// lteErr returns the formatted lte error.
+func lteErr(name, lte string) error {
+	return fmt.Errorf("%q value must be less than or equal to %s", name, lte)
 }
 
 // getFieldKey returns a key ("key" tag) for the provided fieldName. If the "key" tag is not present,

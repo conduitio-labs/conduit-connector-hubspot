@@ -67,6 +67,39 @@ func TestValidateStruct(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "fail_lte",
+			args: args{
+				data: struct {
+					BufferSize int `key:"bufferSize" validate:"lte=5"`
+				}{
+					BufferSize: 76,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "fail_gte",
+			args: args{
+				data: struct {
+					BufferSize int `key:"bufferSize" validate:"gte=100"`
+				}{
+					BufferSize: 76,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "fail_lte_and_gte",
+			args: args{
+				data: struct {
+					BufferSize int `key:"bufferSize" validate:"lte=102,gte=100"`
+				}{
+					BufferSize: 103,
+				},
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
