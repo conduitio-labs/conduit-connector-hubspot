@@ -40,7 +40,18 @@ func TestValidateStruct(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "success_pointer",
+			name: "success_hubspot_resource",
+			args: args{
+				data: struct {
+					Resource string `key:"resource" validate:"hubspot_resource"`
+				}{
+					Resource: "crm.contacts",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "fail_pointer",
 			args: args{
 				data: &struct {
 					AccessToken string `validate:"required"`
@@ -49,7 +60,7 @@ func TestValidateStruct(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "success_custom_key",
+			name: "fail_custom_key",
 			args: args{
 				data: struct {
 					AccessToken string `key:"accessToken" validate:"required"`
@@ -96,6 +107,17 @@ func TestValidateStruct(t *testing.T) {
 					BufferSize int `key:"bufferSize" validate:"lte=102,gte=100"`
 				}{
 					BufferSize: 103,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "fail_hubspot_resource",
+			args: args{
+				data: struct {
+					Resource string `key:"resource" validate:"hubspot_resource"`
+				}{
+					Resource: "wrong",
 				},
 			},
 			wantErr: true,

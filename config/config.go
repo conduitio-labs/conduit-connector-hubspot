@@ -40,7 +40,7 @@ type Config struct {
 	// AccessToken is a private app's access token for accessing the HubSpot API.
 	AccessToken string `key:"accessToken" validate:"required"`
 	// Resource defines a HubSpot resource that the connector will work with.
-	Resource string `key:"resource" validate:"required"`
+	Resource string `key:"resource" validate:"required,hubspot_resource"`
 	// MaxRetries is the number of HubSpot API request retries attempts
 	// that will be tried before giving up if a request fails.
 	MaxRetries int `key:"maxRetries" validate:"gte=1"`

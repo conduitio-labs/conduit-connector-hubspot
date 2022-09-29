@@ -37,12 +37,12 @@ func TestParse(t *testing.T) {
 			args: args{
 				cfg: map[string]string{
 					KeyAccessToken: "access_token",
-					KeyResource:    "contacts",
+					KeyResource:    "crm.contacts",
 				},
 			},
 			want: Config{
 				AccessToken: "access_token",
-				Resource:    "contacts",
+				Resource:    "crm.contacts",
 				MaxRetries:  DefaultMaxRetries,
 			},
 			wantErr: false,
@@ -62,6 +62,17 @@ func TestParse(t *testing.T) {
 			args: args{
 				cfg: map[string]string{
 					KeyAccessToken: "access_token",
+				},
+			},
+			want:    Config{},
+			wantErr: true,
+		},
+		{
+			name: "fail_unsupported_resource",
+			args: args{
+				cfg: map[string]string{
+					KeyAccessToken: "access_token",
+					KeyResource:    "wrong",
 				},
 			},
 			want:    Config{},

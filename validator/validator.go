@@ -20,12 +20,17 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/multierr"
 )
 
-// keyStructTag is a tag which contains a field's key.
-const keyStructTag = "key"
+const (
+	// keyStructTag is a tag which contains a field's key.
+	keyStructTag = "key"
+	// hubspotResourceTag is a tag for the [hubspotResource] validation.
+	hubspotResourceTag = "hubspot_resource"
+)
 
 var (
 	once sync.Once
@@ -36,9 +41,7 @@ var (
 
 // Validate validates a struct.
 func ValidateStruct(data any) error {
-	once.Do(func() {
-		validate = validator.New()
-	})
+	lazyInit()
 
 	var err error
 
@@ -60,6 +63,8 @@ func ValidateStruct(data any) error {
 					err = multierr.Append(err, gteErr(fieldName, fieldErr.Param()))
 				case "lte":
 					err = multierr.Append(err, lteErr(fieldName, fieldErr.Param()))
+				case hubspotResourceTag:
+					err = multierr.Append(err, hubspotResourceErr(fieldName))
 				}
 			}
 		}
@@ -67,6 +72,13 @@ func ValidateStruct(data any) error {
 
 	//nolint:wrapcheck // since we use multierr here, we don't want to wrap the error
 	return err
+}
+
+// hubspotResource checks if a field's value is a supported HubSpot resource.
+func hubspotResource(fl validator.FieldLevel) bool {
+	_, ok := hubspot.ResourcesPaths[fl.Field().String()]
+
+	return ok
 }
 
 // requiredErr returns the formatted required error.
@@ -82,6 +94,11 @@ func gteErr(name, gte string) error {
 // lteErr returns the formatted lte error.
 func lteErr(name, lte string) error {
 	return fmt.Errorf("%q value must be less than or equal to %s", name, lte)
+}
+
+// hubspotResourceErr returns the formatted hubspot_resource error.
+func hubspotResourceErr(name string) error {
+	return fmt.Errorf("%q value must be one of the supported HubSpot resources", name)
 }
 
 // getFieldKey returns a key ("key" tag) for the provided fieldName. If the "key" tag is not present,
@@ -108,4 +125,15 @@ func getFieldKey(data any, fieldName string) string {
 	}
 
 	return fieldKey
+}
+
+// lazyInit performs the initialization of a validator and registers custom validations.
+func lazyInit() {
+	once.Do(func() {
+		validate = validator.New()
+
+		if err := validate.RegisterValidation(hubspotResourceTag, hubspotResource); err != nil {
+			panic(fmt.Errorf("register %q validation function: %w", hubspotResourceTag, err))
+		}
+	})
 }
