@@ -34,7 +34,7 @@ const (
 	// defaultBaseURL is a default HubSpot API base URL.
 	defaultBaseURL = "https://api.hubapi.com"
 	// objectIDPlaceholder is a placeholder for an object id.
-	objectIDPlaceholder = "objectId"
+	objectIDPlaceholder = "{objectId}"
 	// defaultHTTPClientTimeout is a default timeout that is used with the default HTTP client.
 	defaultHTTPClientTimeout = time.Second * 10
 )
