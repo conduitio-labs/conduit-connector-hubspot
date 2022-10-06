@@ -85,6 +85,7 @@ func (d *Destination) Open(ctx context.Context) error {
 
 	d.writer = writer.NewWriter(writer.Params{
 		HubSpotClient: hubspotClient,
+		Resource:      d.config.Resource,
 	})
 
 	return nil
