@@ -76,7 +76,7 @@ func ValidateStruct(data any) error {
 
 // hubspotResource checks if a field's value is a supported HubSpot resource.
 func hubspotResource(fl validator.FieldLevel) bool {
-	_, ok := hubspot.ResourcesPaths[fl.Field().String()]
+	_, ok := hubspot.ResourcesListPaths[fl.Field().String()]
 
 	return ok
 }

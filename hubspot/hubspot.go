@@ -25,12 +25,19 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"time"
 
 	"github.com/google/go-querystring/query"
 )
 
-// defaultBaseURL is a default HubSpot API base URL.
-const defaultBaseURL = "https://api.hubapi.com"
+const (
+	// defaultBaseURL is a default HubSpot API base URL.
+	defaultBaseURL = "https://api.hubapi.com"
+	// objectIDPlaceholder is a placeholder for an object id.
+	objectIDPlaceholder = "{objectId}"
+	// defaultHTTPClientTimeout is a default timeout that is used with the default HTTP client.
+	defaultHTTPClientTimeout = time.Second * 10
+)
 
 // A Client manages communication with the HubSpot API.
 type Client struct {
@@ -44,6 +51,13 @@ func NewClient(accessToken string, httpClient *http.Client) *Client {
 	client := &Client{
 		accessToken: accessToken,
 		httpClient:  httpClient,
+	}
+
+	// if the HTTP client is empty - we'll use a default one with the defaultHTTPClientTimeout.
+	if client.httpClient == nil {
+		client.httpClient = &http.Client{
+			Timeout: defaultHTTPClientTimeout,
+		}
 	}
 
 	// ignore the error cause we'll never get it here
@@ -72,6 +86,10 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body any) 
 		return nil, fmt.Errorf("create request with context: %w", err)
 	}
 
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.accessToken))
 
 	return req, nil
@@ -87,7 +105,7 @@ func (c *Client) do(req *http.Request, out any) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode < http.StatusOK || resp.StatusCode > http.StatusNoContent {
 		unexpectedStatusCodeErr := &UnexpectedStatusCodeError{
 			StatusCode: resp.StatusCode,
 		}
