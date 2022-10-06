@@ -43,7 +43,13 @@ func NewWriter(params Params) *Writer {
 	}
 }
 
-// Write writes a record to a destination.
+// Write routes a provided record to different methods based on its [sdk.Operation].
+//   - If the operation is [sdk.OperationCreate] or [sdk.OperationSnapshot]
+//     the record will be plainly inserted;
+//   - If the operation is [sdk.OperationUpdate]
+//     the method will try to update an existing record using the record payload;
+//   - If the operation is [sdk.OperationDelete]
+//     the method will try to delete an existing record using the record key.
 func (w *Writer) Write(ctx context.Context, record sdk.Record) error {
 	err := sdk.Util.Destination.Route(ctx, record,
 		w.insert,
@@ -77,7 +83,7 @@ func (w *Writer) insert(ctx context.Context, record sdk.Record) error {
 	return nil
 }
 
-// update updates a record to in a destination.
+// update updates a record in a destination.
 func (w *Writer) update(ctx context.Context, record sdk.Record) error {
 	key, err := w.structurizeData(record.Key)
 	if err != nil {
@@ -110,7 +116,7 @@ func (w *Writer) update(ctx context.Context, record sdk.Record) error {
 	return nil
 }
 
-// delete deletes a record to from a destination.
+// delete deletes a record from a destination.
 func (w *Writer) delete(ctx context.Context, record sdk.Record) error {
 	key, err := w.structurizeData(record.Key)
 	if err != nil {
