@@ -103,6 +103,8 @@ func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, err
 }
 
 // Teardown does nothing.
-func (d *Destination) Teardown(_ context.Context) error {
+func (d *Destination) Teardown(ctx context.Context) error {
+	sdk.Logger(ctx).Debug().Msg("got teardown")
+
 	return nil
 }
