@@ -12,18 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package hubspot implements HubSpot connector for Conduit.
-// It provides both, a source and a destination HubSpot connector.
-package hubspot
+package writer
 
-import (
-	"github.com/conduitio-labs/conduit-connector-hubspot/destination"
-	"github.com/conduitio-labs/conduit-connector-hubspot/source"
-	sdk "github.com/conduitio/conduit-connector-sdk"
+import "errors"
+
+var (
+	// ErrEmptyPayload occurs when there's no payload to insert.
+	ErrEmptyPayload = errors.New("payload is empty")
+	// ErrCompositeKeysNotSupported occurs when there are more than one key in a Key map.
+	ErrCompositeKeysNotSupported = errors.New("composite keys not yet supported")
+	// ErrKeyIsNotAString occurs when a key value cannot be converted to a string.
+	ErrKeyIsNotAString = errors.New("key is not a string")
+	// ErrEmptyKey occurs when a key is empty.
+	ErrEmptyKey = errors.New("key is empty")
 )
-
-var Connector = sdk.Connector{
-	NewSpecification: Specification,
-	NewSource:        source.NewSource,
-	NewDestination:   destination.NewDestination,
-}

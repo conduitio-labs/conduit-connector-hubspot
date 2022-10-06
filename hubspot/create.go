@@ -20,15 +20,8 @@ import (
 	"net/http"
 )
 
-const (
-	// ResultsFieldID defines a field key for item ID.
-	ResultsFieldID string = "id"
-	// ResultsFieldCreatedAt defines a field key for item creation date.
-	ResultsFieldCreatedAt string = "createdAt"
-)
-
-// ResourcesListPaths holds a mapping of supported resources and their list endpoints.
-var ResourcesListPaths = map[string]string{
+// ResourcesCreatePaths holds a mapping of supported resources and their create endpoints.
+var ResourcesCreatePaths = map[string]string{
 	// https://developers.hubspot.com/docs/api/cms/blog-authors
 	"cms.blogs.authors": "/cms/v3/blogs/authors",
 	// https://developers.hubspot.com/docs/api/cms/blog-post
@@ -75,68 +68,30 @@ var ResourcesListPaths = map[string]string{
 	"crm.notes": "/crm/v3/objects/notes",
 	// https://developers.hubspot.com/docs/api/crm/tasks
 	"crm.tasks": "/crm/v3/objects/tasks",
-	// https://developers.hubspot.com/docs/api/crm/imports
-	"crm.imports": "/crm/v3/imports",
-	// https://developers.hubspot.com/docs/api/crm/owners
-	"crm.owners": "/crm/v3/owners",
-	// https://developers.hubspot.com/docs/api/events/web-analytics
-	"events.web": "/events/v3/events",
 	// https://developers.hubspot.com/docs/api/marketing/forms
 	"marketing.forms": "/marketing/v3/forms",
 	// https://developers.hubspot.com/docs/api/settings/user-provisioning
 	"settings.users": "/settings/v3/users",
 }
 
-// ListOptions holds optional params for the [List] method.
-type ListOptions struct {
-	Limit int    `url:"limit,omitempty"`
-	After string `url:"after,omitempty"`
-}
-
-// ListResponse is a common response model for endpoints that returns a list of results.
-// It consists of a results list, paging info, and the total number of elements.
-type ListResponse struct {
-	Total   int                 `json:"total,omitempty"`
-	Results []map[string]any    `json:"results"`
-	Paging  *ListResponsePaging `json:"paging,omitempty"`
-}
-
-// ListResponsePaging is a paging info model for the [ListResponse].
-type ListResponsePaging struct {
-	Next ListResponsePagingNext `json:"next"`
-}
-
-// ListResponsePagingNext is a next model for the [ListResponsePaging].
-type ListResponsePagingNext struct {
-	After string `json:"after"`
-	Link  string `json:"link"`
-}
-
-// List retrieves a list of items of a specific resource.
+// Create creates a new item of a specific resource.
 // The method raises an *[UnsupportedResourceError] if a provided resource is unsupported.
-// If everything is okay, the method will return a *[ListResponse].
-func (c *Client) List(ctx context.Context, resource string, opts *ListOptions) (*ListResponse, error) {
-	resourcePath, ok := ResourcesListPaths[resource]
+func (c *Client) Create(ctx context.Context, resource string, item map[string]any) error {
+	resourcePath, ok := ResourcesCreatePaths[resource]
 	if !ok {
-		return nil, &UnsupportedResourceError{
+		return &UnsupportedResourceError{
 			Resource: resource,
 		}
 	}
 
-	resourcePath, err := addOptions(resourcePath, opts)
+	req, err := c.newRequest(ctx, http.MethodPost, resourcePath, item)
 	if err != nil {
-		return nil, fmt.Errorf("add options: %w", err)
+		return fmt.Errorf("create new request: %w", err)
 	}
 
-	req, err := c.newRequest(ctx, http.MethodGet, resourcePath, nil)
-	if err != nil {
-		return nil, fmt.Errorf("create new request: %w", err)
+	if err := c.do(req, nil); err != nil {
+		return fmt.Errorf("do request: %w", err)
 	}
 
-	var resp ListResponse
-	if err := c.do(req, &resp); err != nil {
-		return nil, fmt.Errorf("do request: %w", err)
-	}
-
-	return &resp, nil
+	return nil
 }
