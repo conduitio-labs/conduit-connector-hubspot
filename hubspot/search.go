@@ -181,7 +181,10 @@ func (c *Client) Search(ctx context.Context, resource string, request *SearchReq
 // SearchByUpdatedAfter is a wrapper that calls the [Search] method returning only those results
 // that were updated after a specific date and ordering them ascendingly by updatedAt field.
 func (c *Client) SearchByUpdatedAfter(
-	ctx context.Context, resource string, updatedAfter time.Time, limit int,
+	ctx context.Context,
+	resource string,
+	updatedAfter time.Time,
+	limit int,
 ) (*ListResponse, error) {
 	searchResource, ok := SearchResources[resource]
 	if !ok {

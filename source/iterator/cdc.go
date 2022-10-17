@@ -141,7 +141,9 @@ func (c *CDC) processUpdatedItems(ctx context.Context, updatedAfter time.Time) e
 
 // fetchTimestampBasedItems fetches items by filtering them by updatedAt field.
 func (c *CDC) fetchTimestampBasedItems(
-	ctx context.Context, resource hubspot.TimestampResource, updatedAfter time.Time,
+	ctx context.Context,
+	resource hubspot.TimestampResource,
+	updatedAfter time.Time,
 ) error {
 	listOpts := &hubspot.ListOptions{
 		Limit:        c.bufferSize,
@@ -166,7 +168,9 @@ func (c *CDC) fetchTimestampBasedItems(
 
 // fetchSearchBasedItems fetches items using search endpoint.
 func (c *CDC) fetchSearchBasedItems(
-	ctx context.Context, resource hubspot.SearchResource, updatedAfter time.Time,
+	ctx context.Context,
+	resource hubspot.SearchResource,
+	updatedAfter time.Time,
 ) error {
 	listResp, err := c.hubspotClient.SearchByUpdatedAfter(ctx, c.resource, updatedAfter, c.bufferSize)
 	if err != nil {
@@ -186,7 +190,10 @@ func (c *CDC) fetchSearchBasedItems(
 // routeItem retrives createdAt and updatedAt fields from the item, compares them
 // and based on the result of the comparison decides to send a Create or Update sdk.Record.
 func (c *CDC) routeItem(
-	item hubspot.ListResponseResult, createdAtFieldName, updatedAtFieldName string, updatedAfter time.Time,
+	item hubspot.ListResponseResult,
+	createdAtFieldName,
+	updatedAtFieldName string,
+	updatedAfter time.Time,
 ) error {
 	itemCreatedAt, err := item.GetTimeField(createdAtFieldName)
 	if err != nil {
