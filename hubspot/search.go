@@ -133,6 +133,7 @@ var SearchResources = map[string]SearchResource{
 
 // SearchRequest is a request model for the [Search] method.
 type SearchRequest struct {
+	Limit        string                     `json:"limit,omitempty"`
 	FilterGroups []SearchRequestFilterGroup `json:"filterGroups,omitempty"`
 	Sorts        []SearchRequestSort        `json:"sorts,omitempty"`
 }
@@ -180,7 +181,7 @@ func (c *Client) Search(ctx context.Context, resource string, request *SearchReq
 // SearchByUpdatedAfter is a wrapper that calls the [Search] method returning only those results
 // that were updated after a specific date and ordering them ascendingly by updatedAt field.
 func (c *Client) SearchByUpdatedAfter(
-	ctx context.Context, resource string, updatedAfter time.Time,
+	ctx context.Context, resource string, updatedAfter time.Time, limit int,
 ) (*ListResponse, error) {
 	searchResource, ok := SearchResources[resource]
 	if !ok {
@@ -190,6 +191,7 @@ func (c *Client) SearchByUpdatedAfter(
 	}
 
 	return c.Search(ctx, resource, &SearchRequest{
+		Limit: strconv.Itoa(limit),
 		FilterGroups: []SearchRequestFilterGroup{
 			{
 				Filters: []SearchRequestFilterGroupFilter{

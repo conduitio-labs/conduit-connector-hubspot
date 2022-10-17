@@ -144,6 +144,7 @@ func (c *CDC) fetchTimestampBasedItems(
 	ctx context.Context, resource hubspot.TimestampResource, updatedAfter time.Time,
 ) error {
 	listOpts := &hubspot.ListOptions{
+		Limit:        c.bufferSize,
 		UpdatedAfter: &updatedAfter,
 		Sort:         hubspot.UpdatedAtListSortKey,
 	}
@@ -167,7 +168,7 @@ func (c *CDC) fetchTimestampBasedItems(
 func (c *CDC) fetchSearchBasedItems(
 	ctx context.Context, resource hubspot.SearchResource, updatedAfter time.Time,
 ) error {
-	listResp, err := c.hubspotClient.SearchByUpdatedAfter(ctx, c.resource, updatedAfter)
+	listResp, err := c.hubspotClient.SearchByUpdatedAfter(ctx, c.resource, updatedAfter, c.bufferSize)
 	if err != nil {
 		return fmt.Errorf("list items: %w", err)
 	}
