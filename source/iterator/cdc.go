@@ -221,7 +221,7 @@ func (c *CDC) routeItem(
 	}
 
 	// if the item's createdAt is after the timestamp after which we're searching items
-	// we consider the item's operation as sdk.OperationCreate.
+	// we consider the item's operation to be sdk.OperationCreate.
 	if itemCreatedAt.After(updatedAfter) {
 		c.records <- sdk.Util.Source.NewRecordCreate(sdkPosition, metadata,
 			sdk.StructuredData{hubspot.ResultsFieldID: item[hubspot.ResultsFieldID]},
