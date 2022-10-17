@@ -25,6 +25,7 @@ func TestPosition_MarshalSDKPosition(t *testing.T) {
 	t.Parallel()
 
 	type fields struct {
+		Mode   PositionMode
 		LastID int
 	}
 
@@ -37,9 +38,10 @@ func TestPosition_MarshalSDKPosition(t *testing.T) {
 		{
 			name: "success",
 			fields: fields{
+				Mode:   CDCPositionMode,
 				LastID: 1,
 			},
-			want:    sdk.Position([]byte(`{"lastId":1}`)),
+			want:    sdk.Position([]byte(`{"mode":"cdc","itemId":1}`)),
 			wantErr: false,
 		},
 	}
@@ -51,7 +53,8 @@ func TestPosition_MarshalSDKPosition(t *testing.T) {
 			t.Parallel()
 
 			p := &Position{
-				LastID: tt.fields.LastID,
+				Mode:   tt.fields.Mode,
+				ItemID: tt.fields.LastID,
 			}
 
 			got, err := p.MarshalSDKPosition()
@@ -84,10 +87,11 @@ func TestParsePosition(t *testing.T) {
 		{
 			name: "success",
 			args: args{
-				sdkPosition: sdk.Position([]byte(`{"lastId": 1}`)),
+				sdkPosition: sdk.Position([]byte(`{"mode":"cdc","itemId": 1}`)),
 			},
 			want: &Position{
-				LastID: 1,
+				Mode:   CDCPositionMode,
+				ItemID: 1,
 			},
 			wantErr: false,
 		},

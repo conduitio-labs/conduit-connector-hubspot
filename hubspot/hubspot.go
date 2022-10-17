@@ -72,6 +72,10 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body any) 
 		return nil, fmt.Errorf("create request with context: %w", err)
 	}
 
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.accessToken))
 
 	return req, nil

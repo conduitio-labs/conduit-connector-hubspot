@@ -22,7 +22,7 @@ type UnexpectedStatusCodeError struct {
 	Body       []byte
 }
 
-// Error returns a formated error message for the UnexpectedStatusCodeError.
+// Error returns a formated error message for the [UnexpectedStatusCodeError].
 func (e *UnexpectedStatusCodeError) Error() string {
 	return fmt.Sprintf("unexpected status code %d, body: %s", e.StatusCode, e.Body)
 }
@@ -32,7 +32,17 @@ type UnsupportedResourceError struct {
 	Resource string
 }
 
-// Error returns a formated error message for the UnsupportedResourceError.
+// Error returns a formated error message for the [UnsupportedResourceError].
 func (e *UnsupportedResourceError) Error() string {
 	return fmt.Sprintf("unsupported resource %q", e.Resource)
+}
+
+// FieldNotExistError occurs when trying to get a field by a field name that doesn't exist within a map.
+type FieldNotExistError struct {
+	FieldName string
+}
+
+// Error returns a formated error message for the [FieldNotExistError].
+func (e *FieldNotExistError) Error() string {
+	return fmt.Sprintf("field %q doesn't exist", e.FieldName)
 }
