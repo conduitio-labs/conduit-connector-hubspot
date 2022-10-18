@@ -17,12 +17,13 @@ package hubspot
 import (
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	"reflect"
 	"testing"
 )
 
-func TestClient_List_success(t *testing.T) {
+func TestClient_Search_success(t *testing.T) {
 	t.Parallel()
 
 	client, mux, teardown := setup()
@@ -31,22 +32,48 @@ func TestClient_List_success(t *testing.T) {
 		teardown()
 	})
 
-	mux.HandleFunc("/crm/v3/objects/quotes", func(w http.ResponseWriter, r *http.Request) {
+	expectedReqBody := []byte(
+		`{"filterGroups":[{"filters":[{"propertyName":"lastmodifieddate","operator":"GTE","value":"1664551127170"}]}]}`,
+	)
+
+	mux.HandleFunc("/crm/v3/objects/contacts/search", func(w http.ResponseWriter, r *http.Request) {
+		reqBody, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("read request body: %v", err)
+		}
+
+		if reflect.DeepEqual(reqBody, expectedReqBody) {
+			t.Errorf("expected body to be %s, but got %s", expectedReqBody, reqBody)
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		_, err := w.Write(
-			[]byte(`{"results": [{"id": "1", "name": "hello"}], "paging": {"next": {"after": "2"}}}`),
+		_, err = w.Write(
+			[]byte(`{"total":5,"results": [{"id": "1", "name": "hello"}], "paging": {"next": {"after": "2"}}}`),
 		)
 		if err != nil {
 			t.Errorf("write body: %v", err)
 		}
 	})
 
-	got, err := client.List(context.Background(), "crm.quotes", nil)
+	got, err := client.Search(context.Background(), "crm.contacts", &SearchRequest{
+		FilterGroups: []SearchRequestFilterGroup{
+			{
+				Filters: []SearchRequestFilterGroupFilter{
+					{
+						PropertyName: "hs_lastmodifieddate",
+						Operator:     "GTE",
+						Value:        "1664551127170",
+					},
+				},
+			},
+		},
+	})
 	if err != nil {
 		t.Errorf("expected error to be nil, but got %v", err)
 	}
 
 	want := &ListResponse{
+		Total:   5,
 		Results: []ListResponseResult{{"id": "1", "name": "hello"}},
 		Paging: &ListResponsePaging{
 			Next: ListResponsePagingNext{
@@ -60,33 +87,7 @@ func TestClient_List_success(t *testing.T) {
 	}
 }
 
-func TestClient_List_withOptions(t *testing.T) {
-	t.Parallel()
-
-	client, mux, teardown := setup()
-
-	t.Cleanup(func() {
-		teardown()
-	})
-
-	mux.HandleFunc("/crm/v3/objects/quotes", func(w http.ResponseWriter, r *http.Request) {
-		expectedQuery := "after=2&limit=1"
-
-		if r.URL.RawQuery != expectedQuery {
-			t.Errorf("r.URL.Path = %v, want = %v", r.URL.RawQuery, expectedQuery)
-		}
-	})
-
-	_, err := client.List(context.Background(), "crm.quotes", &ListOptions{
-		Limit: 1,
-		After: "2",
-	})
-	if err != nil {
-		t.Errorf("expected error to be nil, but got %v", err)
-	}
-}
-
-func TestClient_List_unsupportedResource(t *testing.T) {
+func TestClient_Search_unsupportedResource(t *testing.T) {
 	t.Parallel()
 
 	client, _, teardown := setup()
@@ -95,7 +96,7 @@ func TestClient_List_unsupportedResource(t *testing.T) {
 		teardown()
 	})
 
-	_, err := client.List(context.Background(), "wrong", nil)
+	_, err := client.Search(context.Background(), "wrong", nil)
 	if err == nil {
 		t.Errorf("expected error, but got nil")
 	}

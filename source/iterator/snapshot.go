@@ -32,6 +32,7 @@ type Snapshot struct {
 	pollingPeriod time.Duration
 	records       chan sdk.Record
 	errC          chan error
+	stopC         chan struct{}
 	position      *Position
 }
 
@@ -45,7 +46,7 @@ type SnapshotParams struct {
 }
 
 // NewSnapshot creates a new instance of the [Snapshot].
-func NewSnapshot(ctx context.Context, params SnapshotParams) *Snapshot {
+func NewSnapshot(ctx context.Context, params SnapshotParams) (*Snapshot, error) {
 	snapshot := &Snapshot{
 		hubspotClient: params.HubSpotClient,
 		resource:      params.Resource,
@@ -53,12 +54,17 @@ func NewSnapshot(ctx context.Context, params SnapshotParams) *Snapshot {
 		pollingPeriod: params.PollingPeriod,
 		records:       make(chan sdk.Record, params.BufferSize),
 		errC:          make(chan error, 1),
+		stopC:         make(chan struct{}, 1),
 		position:      params.Position,
+	}
+
+	if err := snapshot.loadRecords(ctx); err != nil {
+		return nil, fmt.Errorf("initial load record: %w", err)
 	}
 
 	go snapshot.poll(ctx)
 
-	return snapshot
+	return snapshot, nil
 }
 
 // HasNext returns a bool indicating whether the iterator has the next record to return or not.
@@ -89,6 +95,9 @@ func (s *Snapshot) poll(ctx context.Context) {
 		case <-ctx.Done():
 			return
 
+		case <-s.stopC:
+			return
+
 		case <-ticker.C:
 			if err := s.loadRecords(ctx); err != nil {
 				s.errC <- fmt.Errorf("load records: %w", err)
@@ -105,8 +114,8 @@ func (s *Snapshot) loadRecords(ctx context.Context) error {
 
 	if s.position != nil {
 		// add one here in order to skip
-		// this particular element and start from the next one.
-		listOpts.After = strconv.Itoa(s.position.LastID + 1)
+		// this particular item and start from the next one.
+		listOpts.After = strconv.Itoa(s.position.ItemID + 1)
 	}
 
 	listResponse, err := s.hubspotClient.List(ctx, s.resource, listOpts)
@@ -132,7 +141,7 @@ func (s *Snapshot) loadRecords(ctx context.Context) error {
 
 		s.records <- sdk.Util.Source.NewRecordSnapshot(
 			sdkPosition, metadata,
-			sdk.StructuredData{hubspot.ResultsFieldID: s.position.LastID},
+			sdk.StructuredData{hubspot.ResultsFieldID: s.position.ItemID},
 			sdk.StructuredData(item),
 		)
 	}
@@ -154,7 +163,8 @@ func (s *Snapshot) getItemPosition(item map[string]any) (*Position, error) {
 	}
 
 	return &Position{
-		LastID: itemID,
+		Mode:   SnapshotPositionMode,
+		ItemID: itemID,
 	}, nil
 }
 
@@ -174,4 +184,9 @@ func (s *Snapshot) getItemMetadata(item map[string]any) (metadata sdk.Metadata, 
 	metadata.SetCreatedAt(createdAt)
 
 	return metadata, nil
+}
+
+// Stop stops the iterator.
+func (s *Snapshot) Stop() {
+	s.stopC <- struct{}{}
 }
