@@ -17,14 +17,30 @@ package iterator
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
+// PositionMode defines a position mode.
+type PositionMode string
+
+// The available position modes are listed below.
+const (
+	// SnapshotPositionMode is a snapshot position mode.
+	SnapshotPositionMode PositionMode = "snapshot"
+	// CDCPositionMode is a CDC position mode.
+	CDCPositionMode PositionMode = "cdc"
+)
+
 // Position is an iterator's position.
-// It consists of the last processed element's id.
+// It consists of the [PositionMode], the last processed item's id, and a timestamp.
 type Position struct {
-	LastID int `json:"lastId"`
+	Mode PositionMode `json:"mode"`
+	// ItemID is used if the position's mode is [SnapshotPositionMode].
+	ItemID int `json:"itemId,omitempty"`
+	// Timestamp is used if the position's mode is [CDCPositionMode].
+	Timestamp *time.Time `json:"timestamp,omitempty"`
 }
 
 // MarshalSDKPosition marshals the underlying position into a [sdk.Position] as JSON bytes.

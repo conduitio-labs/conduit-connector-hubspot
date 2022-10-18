@@ -23,4 +23,6 @@ var (
 	// ErrItemIDIsNotAString shouldn't happen cause HubSpot API v3 returns items with string identifiers
 	// but it exists as a last resort.
 	ErrItemIDIsNotAString = errors.New("item's id is not a string")
+	// ErrNoInitializedIterator occurs when the Combined iterator has no any initialized underlying iterators.
+	ErrNoInitializedIterator = errors.New("no initialized iterator")
 )

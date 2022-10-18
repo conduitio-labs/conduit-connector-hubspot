@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 const (
@@ -26,6 +27,27 @@ const (
 	// ResultsFieldCreatedAt defines a field key for item creation date.
 	ResultsFieldCreatedAt string = "createdAt"
 )
+
+// UpdatedAtListSortKey is used as a value for the sort list option.
+const UpdatedAtListSortKey = "updatedAt"
+
+// TimestampResource holds a createdAt, and updatedAt field names.
+type TimestampResource struct {
+	CreatedAtFieldName string
+	UpdatedAtFieldName string
+}
+
+// TimestampResources holds a list of resources that support timestamp-based filtering.
+var TimestampResources = map[string]TimestampResource{
+	"cms.blogs.authors": {CreatedAtFieldName: "created", UpdatedAtFieldName: "updated"},
+	"cms.blogs.posts":   {CreatedAtFieldName: "created", UpdatedAtFieldName: "updated"},
+	"cms.blogs.tags":    {CreatedAtFieldName: "created", UpdatedAtFieldName: "updated"},
+	"cms.pages.landing": {CreatedAtFieldName: "createdAt", UpdatedAtFieldName: "updatedAt"},
+	"cms.pages.site":    {CreatedAtFieldName: "createdAt", UpdatedAtFieldName: "updatedAt"},
+	"cms.hubdb.tables":  {CreatedAtFieldName: "createdAt", UpdatedAtFieldName: "updatedAt"},
+	"cms.domains":       {CreatedAtFieldName: "createdAt", UpdatedAtFieldName: "updatedAt"},
+	"cms.urlRedirects":  {CreatedAtFieldName: "createdAt", UpdatedAtFieldName: "updatedAt"},
+}
 
 // ResourcesListPaths holds a mapping of supported resources and their list endpoints.
 var ResourcesListPaths = map[string]string{
@@ -89,16 +111,40 @@ var ResourcesListPaths = map[string]string{
 
 // ListOptions holds optional params for the [List] method.
 type ListOptions struct {
-	Limit int    `url:"limit,omitempty"`
-	After string `url:"after,omitempty"`
+	Limit        int        `url:"limit,omitempty"`
+	After        string     `url:"after,omitempty"`
+	CreatedAfter *time.Time `url:"createdAfter,omitempty"`
+	UpdatedAfter *time.Time `url:"updatedAfter,omitempty"`
+	Sort         string     `url:"sort,omitempty"`
+	Archived     bool       `url:"archived,omitempty"`
 }
 
 // ListResponse is a common response model for endpoints that returns a list of results.
-// It consists of a results list, paging info, and the total number of elements.
+// It consists of a results list, paging info, and the total number of items.
 type ListResponse struct {
-	Total   int                 `json:"total,omitempty"`
-	Results []map[string]any    `json:"results"`
-	Paging  *ListResponsePaging `json:"paging,omitempty"`
+	Total   int                  `json:"total,omitempty"`
+	Results []ListResponseResult `json:"results"`
+	Paging  *ListResponsePaging  `json:"paging,omitempty"`
+}
+
+// ListResponseResult is a result object for the [ListResponse].
+type ListResponseResult map[string]any
+
+// GetTimeField returns a field by a provided field name and parses it into time.Time.
+func (r ListResponseResult) GetTimeField(name string) (time.Time, error) {
+	field, ok := r[name].(string)
+	if !ok {
+		return time.Time{}, &FieldNotExistError{
+			FieldName: name,
+		}
+	}
+
+	parsedField, err := time.Parse(time.RFC3339, field)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("parse field into time.Time: %w", err)
+	}
+
+	return parsedField, nil
 }
 
 // ListResponsePaging is a paging info model for the [ListResponse].

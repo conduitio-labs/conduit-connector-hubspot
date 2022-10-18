@@ -39,7 +39,7 @@ var (
 	validate *validator.Validate
 )
 
-// Validate validates a struct.
+// ValidateStruct validates a struct.
 func ValidateStruct(data any) error {
 	lazyInit()
 

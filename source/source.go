@@ -30,6 +30,7 @@ import (
 type Iterator interface {
 	HasNext(ctx context.Context) (bool, error)
 	Next(ctx context.Context) (sdk.Record, error)
+	Stop()
 }
 
 // Source is a HubSpot source plugin.
@@ -101,13 +102,16 @@ func (s *Source) Open(ctx context.Context, sdkPosition sdk.Position) error {
 		return fmt.Errorf("parse position: %w", err)
 	}
 
-	s.iterator = iterator.NewSnapshot(ctx, iterator.SnapshotParams{
+	s.iterator, err = iterator.NewCombined(ctx, iterator.CombinedParams{
 		HubSpotClient: hubspotClient,
 		Resource:      s.config.Resource,
 		BufferSize:    s.config.BufferSize,
 		PollingPeriod: s.config.PollingPeriod,
 		Position:      position,
 	})
+	if err != nil {
+		return fmt.Errorf("initialize combined iterator: %w", err)
+	}
 
 	return nil
 }
@@ -141,7 +145,7 @@ func (s *Source) Ack(ctx context.Context, position sdk.Position) error {
 
 // Teardown does nothing.
 func (s *Source) Teardown(ctx context.Context) error {
-	sdk.Logger(ctx).Debug().Msg("got teardown")
+	s.iterator.Stop()
 
 	return nil
 }
