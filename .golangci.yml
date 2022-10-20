@@ -112,3 +112,13 @@ issues:
         - dupl
         - goerr113
         - maintidx
+    - path: _integration_test
+      linters:
+        - varnamelen
+        - testpackage
+        - nonamedreturns
+        - funlen # it can be annoying for table-driven tests
+        - dupl
+        - goerr113
+        - maintidx
+        - paralleltest # we don't want to run the integration tests in parallel because we want deterministic results
