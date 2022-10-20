@@ -47,16 +47,7 @@ var (
 	checkRetryTimeout = time.Second * 2
 )
 
-func TestSource_Read(t *testing.T) {
-	// run the tests as sub tests to provide deterministic results
-	t.Run("success_snapshot", testSuccessSnapshot)
-	t.Run("success_snapshot_continue", testSuccessSnapshotContinue)
-	t.Run("success_cdc", testSuccessCDC)
-	t.Run("fail_backoff_retry", testFailBackoffRetry)
-	t.Run("fail_invalid_token", testFailInvalidToken)
-}
-
-func testSuccessSnapshot(t *testing.T) {
+func TestSource_Read_successSnapshot(t *testing.T) {
 	is := is.New(t)
 
 	// prepare a config, configure and open a new source
@@ -102,7 +93,7 @@ func testSuccessSnapshot(t *testing.T) {
 	is.NoErr(err)
 }
 
-func testSuccessSnapshotContinue(t *testing.T) {
+func TestSource_Read_successSnapshotContinue(t *testing.T) {
 	is := is.New(t)
 
 	// prepare a config, configure and open a new source
@@ -167,7 +158,7 @@ func testSuccessSnapshotContinue(t *testing.T) {
 	is.NoErr(err)
 }
 
-func testSuccessCDC(t *testing.T) {
+func TestSource_Read_successCDC(t *testing.T) {
 	is := is.New(t)
 
 	// prepare a config, configure and open a new source
@@ -246,7 +237,7 @@ func testSuccessCDC(t *testing.T) {
 	is.NoErr(err)
 }
 
-func testFailBackoffRetry(t *testing.T) {
+func TestSource_Read_failBackoffRetry(t *testing.T) {
 	is := is.New(t)
 
 	// prepare a config, configure and open a new source
@@ -268,7 +259,7 @@ func testFailBackoffRetry(t *testing.T) {
 	is.Equal(err, sdk.ErrBackoffRetry)
 }
 
-func testFailInvalidToken(t *testing.T) {
+func TestSource_Read_failInvalidToken(t *testing.T) {
 	is := is.New(t)
 
 	// prepare a config with invalid access token, configure and open a new source
