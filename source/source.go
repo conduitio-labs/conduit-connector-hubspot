@@ -145,7 +145,9 @@ func (s *Source) Ack(ctx context.Context, position sdk.Position) error {
 
 // Teardown does nothing.
 func (s *Source) Teardown(ctx context.Context) error {
-	s.iterator.Stop()
+	if s.iterator != nil {
+		s.iterator.Stop()
+	}
 
 	return nil
 }
