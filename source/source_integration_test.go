@@ -314,7 +314,9 @@ func createTestContact(ctx context.Context, hubspotClient *hubspot.Client) (map[
 
 // updateTestContact updates a random contact's email, firstname and lastname and returns it.
 func updateTestContact(
-	ctx context.Context, hubspotClient *hubspot.Client, itemID string,
+	ctx context.Context,
+	hubspotClient *hubspot.Client,
+	itemID string,
 ) (map[string]any, error) {
 	updatedTestContact := map[string]any{
 		"properties": map[string]any{
