@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
 	sdk "github.com/conduitio/conduit-connector-sdk"
@@ -153,19 +154,27 @@ func (w *Writer) structurizeData(data sdk.Data) (sdk.StructuredData, error) {
 	return structuredData, nil
 }
 
-// getKeyValue returns either the first key within the Key structured data
-// or the default key configured value for key.
+// getKeyValue returns the first key within the Key structured data.
+// It accepts string, int and float64 key values.
 func (w *Writer) getKeyValue(key sdk.StructuredData) (string, error) {
 	if len(key) > 1 {
 		return "", ErrCompositeKeysNotSupported
 	}
 
 	for _, val := range key {
-		if valStr, ok := val.(string); ok {
-			return valStr, nil
-		}
+		switch v := val.(type) {
+		case string:
+			return v, nil
 
-		return "", ErrKeyIsNotAString
+		case int:
+			return strconv.Itoa(v), nil
+
+		case float64:
+			// it's more convenient to use [strconv.Itoa] here
+			// instead of [fmt.Sprintf] or [strconv.FormatFloat]
+			// since we don't need to worry about implicit rounding.
+			return strconv.Itoa(int(v)), nil
+		}
 	}
 
 	return "", nil
