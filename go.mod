@@ -3,6 +3,7 @@ module github.com/conduitio-labs/conduit-connector-hubspot
 go 1.18
 
 require (
+	github.com/brianvoe/gofakeit/v6 v6.19.0
 	github.com/conduitio/conduit-connector-sdk v0.3.0
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/golang/mock v1.6.0

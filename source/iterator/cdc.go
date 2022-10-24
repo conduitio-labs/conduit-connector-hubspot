@@ -17,6 +17,7 @@ package iterator
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
@@ -208,11 +209,11 @@ func (c *CDC) routeItem(
 	metadata := make(sdk.Metadata)
 	metadata.SetCreatedAt(itemCreatedAt)
 
-	c.position = &Position{
-		Mode: CDCPositionMode,
-		// set the timestamp to the item's updatedAt
-		// as we sort items by their updatedAt values.
-		Timestamp: &itemUpdatedAt,
+	// set the timestamp to the item's updatedAt
+	// as we sort items by their updatedAt values.
+	c.position, err = c.getItemPosition(item, itemUpdatedAt)
+	if err != nil {
+		return fmt.Errorf("get item's position: %w", err)
 	}
 
 	sdkPosition, err := c.position.MarshalSDKPosition()
@@ -224,7 +225,7 @@ func (c *CDC) routeItem(
 	// we consider the item's operation to be sdk.OperationCreate.
 	if itemCreatedAt.After(updatedAfter) {
 		c.records <- sdk.Util.Source.NewRecordCreate(sdkPosition, metadata,
-			sdk.StructuredData{hubspot.ResultsFieldID: item[hubspot.ResultsFieldID]},
+			sdk.StructuredData{hubspot.ResultsFieldID: c.position.ItemID},
 			sdk.StructuredData(item),
 		)
 
@@ -232,11 +233,31 @@ func (c *CDC) routeItem(
 	}
 
 	c.records <- sdk.Util.Source.NewRecordUpdate(sdkPosition, metadata,
-		sdk.StructuredData{hubspot.ResultsFieldID: item[hubspot.ResultsFieldID]},
+		sdk.StructuredData{hubspot.ResultsFieldID: c.position.ItemID},
 		nil, sdk.StructuredData(item),
 	)
 
 	return nil
+}
+
+// getItemPosition grabs an id field from a provided item and constructs a [Position] based on its value.
+func (c *CDC) getItemPosition(item map[string]any, timestamp time.Time) (*Position, error) {
+	itemIDStr, ok := item[hubspot.ResultsFieldID].(string)
+	if !ok {
+		// this shouldn't happen cause HubSpot API v3 returns items with string identifiers.
+		return nil, ErrItemIDIsNotAString
+	}
+
+	itemID, err := strconv.Atoi(itemIDStr)
+	if err != nil {
+		return nil, fmt.Errorf("convert item's id string to integer: %w", err)
+	}
+
+	return &Position{
+		Mode:      CDCPositionMode,
+		ItemID:    itemID,
+		Timestamp: &timestamp,
+	}, nil
 }
 
 // Stop stops the iterator.

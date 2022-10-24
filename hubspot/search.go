@@ -22,11 +22,15 @@ import (
 	"time"
 )
 
-// gteOperator is a greater then operator for search endpoints.
-const gteOperator = "GTE"
+const (
+	// GTEOperator is a greater then operator for search endpoints.
+	GTEOperator = "GTE"
+	// EQOperator is an equal operator for search endpoints.
+	EQOperator = "EQ"
+)
 
-// ascSortDirection stands for ascending sorting order.
-const ascSortDirection = "ASCENDING"
+// ASCSortDirection stands for ascending sorting order.
+const ASCSortDirection = "ASCENDING"
 
 // SearchResource holds a path, createdAt, and updatedAt field names.
 type SearchResource struct {
@@ -200,7 +204,7 @@ func (c *Client) SearchByUpdatedAfter(
 				Filters: []SearchRequestFilterGroupFilter{
 					{
 						PropertyName: searchResource.UpdatedAtSortName,
-						Operator:     gteOperator,
+						Operator:     GTEOperator,
 						Value:        strconv.Itoa(int(updatedAfter.UnixMilli())),
 					},
 				},
@@ -209,7 +213,7 @@ func (c *Client) SearchByUpdatedAfter(
 		Sorts: []SearchRequestSort{
 			{
 				PropertyName: searchResource.UpdatedAtSortName,
-				Direction:    ascSortDirection,
+				Direction:    ASCSortDirection,
 			},
 		},
 	})
