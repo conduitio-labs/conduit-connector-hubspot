@@ -62,7 +62,7 @@ func TestParseConfig(t *testing.T) {
 					config.KeyResource:     "crm.contacts",
 					config.KeyMaxRetries:   "10",
 					ConfigKeyPollingPeriod: "10s",
-					ConfigKeyBufferSize:    "500",
+					ConfigKeyBufferSize:    "100",
 				},
 			},
 			want: Config{
@@ -72,7 +72,27 @@ func TestParseConfig(t *testing.T) {
 					MaxRetries:  10,
 				},
 				PollingPeriod: time.Second * 10,
-				BufferSize:    500,
+				BufferSize:    100,
+			},
+			wantErr: false,
+		},
+		{
+			name: "success_zero_polling_period",
+			args: args{
+				cfg: map[string]string{
+					config.KeyAccessToken:  "access_token",
+					config.KeyResource:     "crm.contacts",
+					ConfigKeyPollingPeriod: "0s",
+				},
+			},
+			want: Config{
+				Config: config.Config{
+					AccessToken: "access_token",
+					Resource:    "crm.contacts",
+					MaxRetries:  config.DefaultMaxRetries,
+				},
+				PollingPeriod: defaultPollingPeriod,
+				BufferSize:    defaultBufferSize,
 			},
 			wantErr: false,
 		},
@@ -80,7 +100,7 @@ func TestParseConfig(t *testing.T) {
 			name: "fail_missing_required_common_config_value",
 			args: args{
 				cfg: map[string]string{
-					config.KeyResource:     "contacts",
+					config.KeyResource:     "crm.contacts",
 					ConfigKeyPollingPeriod: "10s",
 				},
 			},
@@ -92,7 +112,7 @@ func TestParseConfig(t *testing.T) {
 			args: args{
 				cfg: map[string]string{
 					config.KeyAccessToken:  "access_token",
-					config.KeyResource:     "contacts",
+					config.KeyResource:     "crm.contacts",
 					ConfigKeyPollingPeriod: "ten seconds",
 				},
 			},
@@ -104,7 +124,7 @@ func TestParseConfig(t *testing.T) {
 			args: args{
 				cfg: map[string]string{
 					config.KeyAccessToken: "access_token",
-					config.KeyResource:    "contacts",
+					config.KeyResource:    "crm.contacts",
 					ConfigKeyBufferSize:   "ten",
 				},
 			},
@@ -116,7 +136,7 @@ func TestParseConfig(t *testing.T) {
 			args: args{
 				cfg: map[string]string{
 					config.KeyAccessToken: "access_token",
-					config.KeyResource:    "contacts",
+					config.KeyResource:    "crm.contacts",
 					ConfigKeyBufferSize:   "0",
 				},
 			},
@@ -128,8 +148,21 @@ func TestParseConfig(t *testing.T) {
 			args: args{
 				cfg: map[string]string{
 					config.KeyAccessToken: "access_token",
-					config.KeyResource:    "contacts",
-					ConfigKeyBufferSize:   "1001",
+					config.KeyResource:    "crm.contacts",
+					ConfigKeyBufferSize:   "101",
+				},
+			},
+			want:    Config{},
+			wantErr: true,
+		},
+		{
+			name: "fail_invalid_polling_period_gt",
+			args: args{
+				cfg: map[string]string{
+					config.KeyAccessToken:  "access_token",
+					config.KeyResource:     "crm.contacts",
+					ConfigKeyPollingPeriod: "-1s",
+					ConfigKeyBufferSize:    "100",
 				},
 			},
 			want:    Config{},

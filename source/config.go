@@ -43,10 +43,10 @@ type Config struct {
 
 	// PollingPeriod is the duration that defines a period of polling
 	// new items if CDC is not available for a resource.
-	PollingPeriod time.Duration `key:"pollingPeriod"`
+	PollingPeriod time.Duration `key:"pollingPeriod" validate:"gte=0"`
 	// BufferSize is the buffer size for consumed items.
 	// It will also be used as a limit when retrieving items from the HubSpot API.
-	BufferSize int `key:"bufferSize" validate:"gte=1,lte=1000"`
+	BufferSize int `key:"bufferSize" validate:"gte=1,lte=100"`
 }
 
 // ParseConfig seeks to parse a provided map[string]string into a Config struct.
@@ -69,7 +69,9 @@ func ParseConfig(cfg map[string]string) (Config, error) {
 			return Config{}, fmt.Errorf("parse polling period: %w", err)
 		}
 
-		sourceConfig.PollingPeriod = pollingPeriod
+		if pollingPeriod != 0 {
+			sourceConfig.PollingPeriod = pollingPeriod
+		}
 	}
 
 	// parse bufferSize if it's not empty.
