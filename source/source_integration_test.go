@@ -55,7 +55,8 @@ func TestSource_Read_successSnapshot(t *testing.T) {
 
 	source := NewSource()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	err := source.Configure(ctx, config)
 	is.NoErr(err)
@@ -83,7 +84,8 @@ func TestSource_Read_successSnapshot(t *testing.T) {
 	err = hubspotClient.Delete(ctx, testResource, testContactID)
 	is.NoErr(err)
 
-	err = source.Teardown(ctx)
+	cancel()
+	err = source.Teardown(context.Background())
 	is.NoErr(err)
 }
 
@@ -95,7 +97,8 @@ func TestSource_Read_successSnapshotContinue(t *testing.T) {
 
 	source := NewSource()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	err := source.Configure(ctx, config)
 	is.NoErr(err)
@@ -126,8 +129,12 @@ func TestSource_Read_successSnapshotContinue(t *testing.T) {
 	err = hubspotClient.Delete(ctx, testResource, firstTestContactID)
 	is.NoErr(err)
 
-	err = source.Teardown(ctx)
+	cancel()
+	err = source.Teardown(context.Background())
 	is.NoErr(err)
+
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
 
 	// reopen the source from the last position
 	is.NoErr(source.Open(ctx, record.Position))
@@ -142,7 +149,8 @@ func TestSource_Read_successSnapshotContinue(t *testing.T) {
 	err = hubspotClient.Delete(ctx, testResource, secondTestContactID)
 	is.NoErr(err)
 
-	err = source.Teardown(ctx)
+	cancel()
+	err = source.Teardown(context.Background())
 	is.NoErr(err)
 }
 
@@ -154,7 +162,8 @@ func TestSource_Read_successCDC(t *testing.T) {
 
 	source := NewSource()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	err := source.Configure(ctx, config)
 	is.NoErr(err)
@@ -209,7 +218,8 @@ func TestSource_Read_successCDC(t *testing.T) {
 	err = hubspotClient.Delete(ctx, testResource, secondTestContactID)
 	is.NoErr(err)
 
-	err = source.Teardown(ctx)
+	cancel()
+	err = source.Teardown(context.Background())
 	is.NoErr(err)
 }
 
