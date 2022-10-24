@@ -48,7 +48,8 @@ func TestDestination_Write_successCreate(t *testing.T) {
 
 	destination := NewDestination()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	err := destination.Configure(ctx, config)
 	is.NoErr(err)
@@ -91,7 +92,8 @@ func TestDestination_Write_successCreate(t *testing.T) {
 	is.Equal(actualProperties["lastname"], testCreateRecordProperties["lastname"])
 
 	// teardown the destination
-	err = destination.Teardown(ctx)
+	cancel()
+	err = destination.Teardown(context.Background())
 	is.NoErr(err)
 }
 
@@ -103,7 +105,8 @@ func TestDestination_Write_successCreateUpdate(t *testing.T) {
 
 	destination := NewDestination()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	err := destination.Configure(ctx, config)
 	is.NoErr(err)
@@ -166,7 +169,8 @@ func TestDestination_Write_successCreateUpdate(t *testing.T) {
 	is.Equal(actualProperties["lastname"], testUpdateRecordProperties["lastname"])
 
 	// teardown the destination
-	err = destination.Teardown(ctx)
+	cancel()
+	err = destination.Teardown(context.Background())
 	is.NoErr(err)
 }
 
@@ -178,7 +182,8 @@ func TestDestination_Write_successCreateDelete(t *testing.T) {
 
 	destination := NewDestination()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	err := destination.Configure(ctx, config)
 	is.NoErr(err)
@@ -235,7 +240,8 @@ func TestDestination_Write_successCreateDelete(t *testing.T) {
 	is.Equal(len(listResp.Results), 0)
 
 	// teardown the destination
-	err = destination.Teardown(ctx)
+	cancel()
+	err = destination.Teardown(context.Background())
 	is.NoErr(err)
 }
 
