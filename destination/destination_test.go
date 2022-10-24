@@ -25,7 +25,7 @@ import (
 	"github.com/matryer/is"
 )
 
-func TestDestination_Write_Success(t *testing.T) {
+func TestDestination_Write_success(t *testing.T) {
 	t.Parallel()
 
 	is := is.New(t)
@@ -59,7 +59,7 @@ func TestDestination_Write_Success(t *testing.T) {
 	is.Equal(written, 1)
 }
 
-func TestDestination_Write_Fail(t *testing.T) {
+func TestDestination_Write_fail(t *testing.T) {
 	t.Parallel()
 
 	is := is.New(t)

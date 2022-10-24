@@ -261,6 +261,10 @@ func TestSource_Read_failInvalidToken(t *testing.T) {
 	// we expect to get a 401 error because the access token we provided is invalid
 	err = source.Open(ctx, nil)
 	is.True(err != nil)
+
+	var unexpectedStatusCode *hubspot.UnexpectedStatusCodeError
+	is.True(errors.As(err, &unexpectedStatusCode))
+	is.Equal(unexpectedStatusCode.StatusCode, http.StatusUnauthorized)
 }
 
 func prepareConfig(t *testing.T, accessToken string) map[string]string {
