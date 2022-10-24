@@ -69,12 +69,6 @@ func TestSource_Read_successSnapshot(t *testing.T) {
 	testContact, err := createTestContact(ctx, hubspotClient)
 	is.NoErr(err)
 
-	// give HubSpot some time to process the HTTP request we sent
-	// and create the contact
-	ok, err := waitTestContacts(ctx, hubspotClient, 1)
-	is.NoErr(err)
-	is.True(ok)
-
 	// open the source
 	err = source.Open(ctx, nil)
 	is.NoErr(err)
@@ -117,12 +111,6 @@ func TestSource_Read_successSnapshotContinue(t *testing.T) {
 
 	secondTestContact, err := createTestContact(ctx, hubspotClient)
 	is.NoErr(err)
-
-	// give HubSpot some time to process the HTTP request we sent
-	// and create the contact
-	ok, err := waitTestContacts(ctx, hubspotClient, 2)
-	is.NoErr(err)
-	is.True(ok)
 
 	// open the source
 	err = source.Open(ctx, nil)
@@ -180,12 +168,6 @@ func TestSource_Read_successCDC(t *testing.T) {
 	firstTestContact, err := createTestContact(ctx, hubspotClient)
 	is.NoErr(err)
 
-	// give HubSpot some time to process the HTTP request we sent
-	// and create the contact
-	ok, err := waitTestContacts(ctx, hubspotClient, 1)
-	is.NoErr(err)
-	is.True(ok)
-
 	err = source.Open(ctx, nil)
 	is.NoErr(err)
 
@@ -206,12 +188,6 @@ func TestSource_Read_successCDC(t *testing.T) {
 	// create a test contact with a random properties
 	secondTestContact, err := createTestContact(ctx, hubspotClient)
 	is.NoErr(err)
-
-	// give HubSpot some time to process the HTTP request we sent
-	// and create the contact
-	ok, err = waitTestContacts(ctx, hubspotClient, 1)
-	is.NoErr(err)
-	is.True(ok)
 
 	record, err = readWithRetry(ctx, source)
 	is.NoErr(err)
@@ -332,34 +308,6 @@ func updateTestContact(
 	}
 
 	return updatedTestContact, nil
-}
-
-// waitTestContacts waits until the expected count of contacts will be presented in HubSpot.
-func waitTestContacts(
-	ctx context.Context,
-	hubspotClient *hubspot.Client,
-	expectedCount int,
-) (bool, error) {
-	ticker := time.NewTicker(checkRetryTimeout)
-
-	for i := 0; i < maxCheckRetries; i++ {
-		select {
-		case <-ctx.Done():
-			return false, fmt.Errorf("context canceled: %w", ctx.Err())
-
-		case <-ticker.C:
-			listResp, err := hubspotClient.List(ctx, testResource, nil)
-			if err != nil {
-				return false, fmt.Errorf("search contacts: %w", err)
-			}
-
-			if len(listResp.Results) == expectedCount {
-				return true, nil
-			}
-		}
-	}
-
-	return false, nil
 }
 
 // readWithRetry tries to read a record from a source with retry.
