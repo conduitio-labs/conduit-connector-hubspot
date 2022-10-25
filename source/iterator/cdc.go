@@ -19,8 +19,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
 	sdk "github.com/conduitio/conduit-connector-sdk"
+
+	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
 )
 
 // CDC is an implementation of a CDC iterator for the HubSpot API.
@@ -58,7 +59,7 @@ func NewCDC(ctx context.Context, params CDCParams) (*CDC, error) {
 	}
 
 	if cdc.position == nil || cdc.position.Timestamp == nil {
-		now := time.Now()
+		now := time.Now().UTC()
 		cdc.position = &Position{
 			Mode:      CDCPositionMode,
 			Timestamp: &now,
@@ -149,6 +150,7 @@ func (c *CDC) fetchTimestampBasedItems(
 		Limit:        c.bufferSize,
 		UpdatedAfter: &updatedAfter,
 		Sort:         hubspot.UpdatedAtListSortKey,
+		Archived:     true,
 	}
 
 	listResp, err := c.hubspotClient.List(ctx, c.resource, listOpts)
@@ -157,7 +159,7 @@ func (c *CDC) fetchTimestampBasedItems(
 	}
 
 	for _, item := range listResp.Results {
-		err = c.routeItem(item, resource.CreatedAtFieldName, resource.UpdatedAtFieldName, updatedAfter)
+		err = c.routeItem(item, resource.CreatedAtFieldName, resource.UpdatedAtFieldName, resource.DeletedAtFieldName, updatedAfter)
 		if err != nil {
 			return fmt.Errorf("route timestamp based item: %w", err)
 		}
@@ -178,7 +180,7 @@ func (c *CDC) fetchSearchBasedItems(
 	}
 
 	for _, item := range listResp.Results {
-		err = c.routeItem(item, resource.CreatedAtFieldName, resource.UpdatedAtFieldName, updatedAfter)
+		err = c.routeItem(item, resource.CreatedAtFieldName, resource.UpdatedAtFieldName, "", updatedAfter)
 		if err != nil {
 			return fmt.Errorf("route search based item: %w", err)
 		}
@@ -192,7 +194,8 @@ func (c *CDC) fetchSearchBasedItems(
 func (c *CDC) routeItem(
 	item hubspot.ListResponseResult,
 	createdAtFieldName,
-	updatedAtFieldName string,
+	updatedAtFieldName,
+	deletedAtFieldName string,
 	updatedAfter time.Time,
 ) error {
 	itemCreatedAt, err := item.GetTimeField(createdAtFieldName)
@@ -218,6 +221,20 @@ func (c *CDC) routeItem(
 	sdkPosition, err := c.position.MarshalSDKPosition()
 	if err != nil {
 		return fmt.Errorf("marshal sdk position: %w", err)
+	}
+
+	if deletedAtFieldName != "" {
+		itemDeletedAt, err := item.GetTimeField(deletedAtFieldName)
+		if err != nil {
+			return fmt.Errorf("get item's update date: %w", err)
+		}
+		if itemDeletedAt == itemUpdatedAt && itemDeletedAt.Unix() > 0 {
+			c.records <- sdk.Util.Source.NewRecordDelete(sdkPosition, metadata,
+				sdk.StructuredData{hubspot.ResultsFieldID: item[hubspot.ResultsFieldID]},
+			)
+
+			return nil
+		}
 	}
 
 	// if the item's createdAt is after the timestamp after which we're searching items
