@@ -159,7 +159,11 @@ func (c *CDC) fetchTimestampBasedItems(
 	}
 
 	for _, item := range listResp.Results {
-		err = c.routeItem(item, resource.CreatedAtFieldName, resource.UpdatedAtFieldName, resource.DeletedAtFieldName, updatedAfter)
+		err = c.routeItem(item,
+			resource.CreatedAtFieldName,
+			resource.UpdatedAtFieldName,
+			resource.DeletedAtFieldName,
+			updatedAfter)
 		if err != nil {
 			return fmt.Errorf("route timestamp based item: %w", err)
 		}
@@ -223,37 +227,54 @@ func (c *CDC) routeItem(
 		return fmt.Errorf("marshal sdk position: %w", err)
 	}
 
+	var itemDeletedAt time.Time
 	if deletedAtFieldName != "" {
-		itemDeletedAt, err := item.GetTimeField(deletedAtFieldName)
+		itemDeletedAt, err = item.GetTimeField(deletedAtFieldName)
 		if err != nil {
 			return fmt.Errorf("get item's update date: %w", err)
 		}
+	}
+
+	c.records <- c.GetRecord(item,
+		itemCreatedAt,
+		itemUpdatedAt,
+		itemDeletedAt,
+		updatedAfter,
+		sdkPosition,
+		metadata)
+
+	return nil
+}
+
+func (c *CDC) GetRecord(item hubspot.ListResponseResult,
+	itemCreatedAt,
+	itemUpdatedAt,
+	itemDeletedAt,
+	updatedAfter time.Time,
+	sdkPosition sdk.Position,
+	metadata sdk.Metadata,
+) sdk.Record {
+	if itemDeletedAt != (time.Time{}) {
 		if itemDeletedAt == itemUpdatedAt && itemDeletedAt.Unix() > 0 {
-			c.records <- sdk.Util.Source.NewRecordDelete(sdkPosition, metadata,
+			return sdk.Util.Source.NewRecordDelete(sdkPosition, metadata,
 				sdk.StructuredData{hubspot.ResultsFieldID: item[hubspot.ResultsFieldID]},
 			)
-
-			return nil
 		}
 	}
 
 	// if the item's createdAt is after the timestamp after which we're searching items
 	// we consider the item's operation to be sdk.OperationCreate.
 	if itemCreatedAt.After(updatedAfter) {
-		c.records <- sdk.Util.Source.NewRecordCreate(sdkPosition, metadata,
+		return sdk.Util.Source.NewRecordCreate(sdkPosition, metadata,
 			sdk.StructuredData{hubspot.ResultsFieldID: item[hubspot.ResultsFieldID]},
 			sdk.StructuredData(item),
 		)
-
-		return nil
 	}
 
-	c.records <- sdk.Util.Source.NewRecordUpdate(sdkPosition, metadata,
+	return sdk.Util.Source.NewRecordUpdate(sdkPosition, metadata,
 		sdk.StructuredData{hubspot.ResultsFieldID: item[hubspot.ResultsFieldID]},
 		nil, sdk.StructuredData(item),
 	)
-
-	return nil
 }
 
 // Stop stops the iterator.

@@ -40,11 +40,31 @@ type TimestampResource struct {
 
 // TimestampResources holds a list of resources that support timestamp-based filtering.
 var TimestampResources = map[string]TimestampResource{
-	"cms.blogs.authors": {CreatedAtFieldName: "created", UpdatedAtFieldName: "updated", DeletedAtFieldName: "deletedAt"},
-	"cms.blogs.posts":   {CreatedAtFieldName: "created", UpdatedAtFieldName: "updated", DeletedAtFieldName: "deletedAt"},
-	"cms.blogs.tags":    {CreatedAtFieldName: "created", UpdatedAtFieldName: "updated", DeletedAtFieldName: "deletedAt"},
-	"cms.pages.landing": {CreatedAtFieldName: "createdAt", UpdatedAtFieldName: "updatedAt", DeletedAtFieldName: "deletedAt"},
-	"cms.pages.site":    {CreatedAtFieldName: "createdAt", UpdatedAtFieldName: "updatedAt", DeletedAtFieldName: "deletedAt"},
+	"cms.blogs.authors": {
+		CreatedAtFieldName: "created",
+		UpdatedAtFieldName: "updated",
+		DeletedAtFieldName: "deletedAt",
+	},
+	"cms.blogs.posts": {
+		CreatedAtFieldName: "created",
+		UpdatedAtFieldName: "updated",
+		DeletedAtFieldName: "deletedAt",
+	},
+	"cms.blogs.tags": {
+		CreatedAtFieldName: "created",
+		UpdatedAtFieldName: "updated",
+		DeletedAtFieldName: "deletedAt",
+	},
+	"cms.pages.landing": {
+		CreatedAtFieldName: "createdAt",
+		UpdatedAtFieldName: "updatedAt",
+		DeletedAtFieldName: "deletedAt",
+	},
+	"cms.pages.site": {
+		CreatedAtFieldName: "createdAt",
+		UpdatedAtFieldName: "updatedAt",
+		DeletedAtFieldName: "deletedAt",
+	},
 }
 
 // ResourcesListPaths holds a mapping of supported resources and their list endpoints.
