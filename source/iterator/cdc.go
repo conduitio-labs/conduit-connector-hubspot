@@ -253,6 +253,9 @@ func (c *CDC) getRecord(item hubspot.ListResponseResult,
 	sdkPosition sdk.Position,
 	metadata sdk.Metadata,
 ) sdk.Record {
+	// if an item is not deleted the HubSpot returns the deletedAt field value
+	// equal to Unix Epoch (1970-01-01T00:00:00Z).
+	// So if the itemDeletedAt.Unix() is not equal to 0, than the item is deleted.
 	if itemDeletedAt.Unix() > 0 {
 		return sdk.Util.Source.NewRecordDelete(sdkPosition, metadata,
 			sdk.StructuredData{hubspot.ResultsFieldID: item[hubspot.ResultsFieldID]},
