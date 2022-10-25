@@ -131,8 +131,8 @@ var ResourcesListPaths = map[string]string{
 type ListOptions struct {
 	Limit        int        `url:"limit,omitempty"`
 	After        string     `url:"after,omitempty"`
-	CreatedAfter *time.Time `url:"createdAfter,omitempty"`
-	UpdatedAfter *time.Time `url:"updatedAfter,omitempty"`
+	CreatedAfter *time.Time `url:"createdAfter,omitempty" layout:"2006-01-02T15:04:05.000Z"`
+	UpdatedAfter *time.Time `url:"updatedAfter,omitempty" layout:"2006-01-02T15:04:05.000Z"`
 	Sort         string     `url:"sort,omitempty"`
 	Archived     bool       `url:"archived,omitempty"`
 }

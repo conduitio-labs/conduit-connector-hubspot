@@ -235,9 +235,8 @@ func (c *CDC) routeItem(
 		return fmt.Errorf("marshal sdk position: %w", err)
 	}
 
-	c.records <- c.GetRecord(item,
+	c.records <- c.getRecord(item,
 		itemCreatedAt,
-		itemUpdatedAt,
 		itemDeletedAt,
 		updatedAfter,
 		sdkPosition,
@@ -246,20 +245,18 @@ func (c *CDC) routeItem(
 	return nil
 }
 
-func (c *CDC) GetRecord(item hubspot.ListResponseResult,
+// getRecord generates a record choosing the operation type based on provided arguments
+func (c *CDC) getRecord(item hubspot.ListResponseResult,
 	itemCreatedAt,
-	itemUpdatedAt,
 	itemDeletedAt,
 	updatedAfter time.Time,
 	sdkPosition sdk.Position,
 	metadata sdk.Metadata,
 ) sdk.Record {
-	if itemDeletedAt != (time.Time{}) {
-		if itemDeletedAt == itemUpdatedAt && itemDeletedAt.Unix() > 0 {
-			return sdk.Util.Source.NewRecordDelete(sdkPosition, metadata,
-				sdk.StructuredData{hubspot.ResultsFieldID: item[hubspot.ResultsFieldID]},
-			)
-		}
+	if itemDeletedAt.Unix() > 0 {
+		return sdk.Util.Source.NewRecordDelete(sdkPosition, metadata,
+			sdk.StructuredData{hubspot.ResultsFieldID: item[hubspot.ResultsFieldID]},
+		)
 	}
 
 	// if the item's createdAt is after the timestamp after which we're searching items
