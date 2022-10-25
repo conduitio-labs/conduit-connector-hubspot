@@ -20,9 +20,10 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/multierr"
+
+	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
 )
 
 const (
@@ -50,7 +51,6 @@ func ValidateStruct(data any) error {
 		if errors.Is(validationErr, (*validator.InvalidValidationError)(nil)) {
 			return fmt.Errorf("validate struct: %w", validationErr)
 		}
-
 		var validationErrs validator.ValidationErrors
 		if errors.As(validationErr, &validationErrs) {
 			for _, fieldErr := range validationErrs {
