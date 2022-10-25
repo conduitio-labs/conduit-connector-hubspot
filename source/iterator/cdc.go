@@ -245,7 +245,7 @@ func (c *CDC) routeItem(
 	return nil
 }
 
-// getRecord generates a record choosing the operation type based on provided arguments
+// getRecord generates a record choosing the operation type based on provided arguments.
 func (c *CDC) getRecord(item hubspot.ListResponseResult,
 	itemCreatedAt,
 	itemDeletedAt,
