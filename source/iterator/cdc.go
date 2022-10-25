@@ -212,6 +212,14 @@ func (c *CDC) routeItem(
 		return fmt.Errorf("get item's update date: %w", err)
 	}
 
+	itemDeletedAt := time.Unix(0, 0)
+	if deletedAtFieldName != "" {
+		itemDeletedAt, err = item.GetTimeField(deletedAtFieldName)
+		if err != nil {
+			return fmt.Errorf("get item's deleted date: %w", err)
+		}
+	}
+
 	metadata := make(sdk.Metadata)
 	metadata.SetCreatedAt(itemCreatedAt)
 
@@ -225,14 +233,6 @@ func (c *CDC) routeItem(
 	sdkPosition, err := c.position.MarshalSDKPosition()
 	if err != nil {
 		return fmt.Errorf("marshal sdk position: %w", err)
-	}
-
-	var itemDeletedAt time.Time
-	if deletedAtFieldName != "" {
-		itemDeletedAt, err = item.GetTimeField(deletedAtFieldName)
-		if err != nil {
-			return fmt.Errorf("get item's update date: %w", err)
-		}
 	}
 
 	c.records <- c.GetRecord(item,
