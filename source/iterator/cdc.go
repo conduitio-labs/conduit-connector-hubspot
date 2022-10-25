@@ -266,7 +266,7 @@ func (c *CDC) getRecord(item hubspot.ListResponseResult,
 	// if the item's createdAt is after the timestamp after which we're searching items
 	// we consider the item's operation to be sdk.OperationCreate.
 	if itemCreatedAt.After(updatedAfter) {
-		c.records <- sdk.Util.Source.NewRecordCreate(sdkPosition, metadata,
+		return sdk.Util.Source.NewRecordCreate(sdkPosition, metadata,
 			sdk.StructuredData{hubspot.ResultsFieldID: c.position.ItemID},
 			sdk.StructuredData(item),
 		)
