@@ -94,6 +94,11 @@ func (s *Snapshot) Next(ctx context.Context) (sdk.Record, error) {
 	}
 }
 
+// Stop stops the iterator.
+func (s *Snapshot) Stop() {
+	s.stopC <- struct{}{}
+}
+
 // poll polls items at the specified time intervals.
 func (s *Snapshot) poll(ctx context.Context) {
 	ticker := time.NewTicker(s.pollingPeriod)
@@ -255,9 +260,4 @@ func (s *Snapshot) getItemMetadata(item map[string]any) (metadata sdk.Metadata, 
 	metadata.SetCreatedAt(createdAt)
 
 	return metadata, nil
-}
-
-// Stop stops the iterator.
-func (s *Snapshot) Stop() {
-	s.stopC <- struct{}{}
 }
