@@ -107,30 +107,7 @@ func (c *Combined) HasNext(ctx context.Context) (bool, error) {
 func (c *Combined) Next(ctx context.Context) (sdk.Record, error) {
 	switch {
 	case c.snapshot != nil:
-		record, err := c.snapshot.Next(ctx)
-		if err != nil {
-			return sdk.Record{}, fmt.Errorf("snapshot next: %w", err)
-		}
-
-		hasNext, err := c.snapshot.HasNext(ctx)
-		if err != nil {
-			return sdk.Record{}, fmt.Errorf("snapshot has next: %w", err)
-		}
-
-		if !hasNext {
-			sdk.Logger(ctx).Debug().Msgf("switching to the CDC mode")
-
-			if err = c.switchToCDCIterator(ctx); err != nil {
-				return sdk.Record{}, fmt.Errorf("switch to cdc iterator: %w", err)
-			}
-
-			record.Position, err = ConvertToCDCPosition(record.Position)
-			if err != nil {
-				return sdk.Record{}, fmt.Errorf("convert position to cdc: %w", err)
-			}
-		}
-
-		return record, nil
+		return c.snapshot.Next(ctx)
 
 	case c.cdc != nil:
 		return c.cdc.Next(ctx)
@@ -148,6 +125,10 @@ func (c *Combined) switchToCDCIterator(ctx context.Context) error {
 		Resource:      c.resource,
 		BufferSize:    c.bufferSize,
 		PollingPeriod: c.pollingPeriod,
+		Position: &Position{
+			Mode:      CDCPositionMode,
+			Timestamp: &c.snapshot.initialTimestamp,
+		},
 	})
 	if err != nil {
 		return fmt.Errorf("init cdc iterator: %w", err)
