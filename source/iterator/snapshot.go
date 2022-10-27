@@ -66,6 +66,10 @@ func NewSnapshot(ctx context.Context, params SnapshotParams) (*Snapshot, error) 
 		initialTimestamp: time.Now().UTC(),
 	}
 
+	if snapshot.position != nil && snapshot.position.Timestamp != nil {
+		snapshot.initialTimestamp = *snapshot.position.Timestamp
+	}
+
 	if err := snapshot.loadRecords(ctx); err != nil {
 		return nil, fmt.Errorf("initial load record: %w", err)
 	}
@@ -138,7 +142,12 @@ func (s *Snapshot) loadRecords(ctx context.Context) error {
 	}
 
 	for _, item := range listResponse.Results {
-		s.position, err = s.getItemPosition(item)
+		itemCreatedAt, err := item.GetCreatedAt(s.resource)
+		if err != nil {
+			return fmt.Errorf("get item's update date: %w", err)
+		}
+
+		s.position, err = s.getItemPosition(item, itemCreatedAt)
 		if err != nil {
 			return fmt.Errorf("get item's position: %w", err)
 		}
@@ -230,7 +239,7 @@ func (s *Snapshot) listSearchBasedItems(ctx context.Context) (*hubspot.ListRespo
 }
 
 // getItemPosition grabs an id field from a provided item and constructs a [Position] based on its value.
-func (s *Snapshot) getItemPosition(item map[string]any) (*Position, error) {
+func (s *Snapshot) getItemPosition(item map[string]any, timestamp time.Time) (*Position, error) {
 	itemIDStr, ok := item[hubspot.ResultsFieldID].(string)
 	if !ok {
 		// this shouldn't happen cause HubSpot API v3 returns items with string identifiers.
@@ -243,8 +252,9 @@ func (s *Snapshot) getItemPosition(item map[string]any) (*Position, error) {
 	}
 
 	return &Position{
-		Mode:   SnapshotPositionMode,
-		ItemID: itemID,
+		Mode:      SnapshotPositionMode,
+		ItemID:    itemID,
+		Timestamp: &timestamp,
 	}, nil
 }
 

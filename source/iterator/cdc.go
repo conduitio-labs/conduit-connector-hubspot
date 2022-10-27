@@ -154,7 +154,7 @@ func (c *CDC) fetchTimestampBasedItems(
 	listOpts := &hubspot.ListOptions{
 		Limit:        c.bufferSize,
 		UpdatedAfter: &updatedAfter,
-		Sort:         hubspot.UpdatedAtListSortKey,
+		Sort:         resource.UpdatedAtFieldName,
 		Archived:     true,
 	}
 

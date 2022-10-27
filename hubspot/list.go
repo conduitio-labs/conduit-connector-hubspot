@@ -28,9 +28,6 @@ const (
 	ResultsFieldCreatedAt string = "createdAt"
 )
 
-// UpdatedAtListSortKey is used as a value for the sort list option.
-const UpdatedAtListSortKey = "updatedAt"
-
 // TimestampResource holds a createdAt, and updatedAt field names.
 type TimestampResource struct {
 	CreatedAtFieldName string
@@ -139,6 +136,43 @@ type ListResponse struct {
 
 // ListResponseResult is a result object for the [ListResponse].
 type ListResponseResult map[string]any
+
+// GetCreatedAt returns the item's createdAt field value.
+func (r ListResponseResult) GetCreatedAt(resource string) (time.Time, error) {
+	if resource, ok := TimestampResources[resource]; ok {
+		return r.GetTimeField(resource.CreatedAtFieldName)
+	}
+
+	if resource, ok := SearchResources[resource]; ok {
+		return r.GetTimeField(resource.CreatedAtFieldName)
+	}
+
+	return time.Time{}, nil
+}
+
+// GetUpdatedAt returns the item's updatedAt field value.
+func (r ListResponseResult) GetUpdatedAt(resource string) (time.Time, error) {
+	if resource, ok := TimestampResources[resource]; ok {
+		return r.GetTimeField(resource.UpdatedAtFieldName)
+	}
+
+	if resource, ok := SearchResources[resource]; ok {
+		return r.GetTimeField(resource.UpdatedAtFieldName)
+	}
+
+	return time.Time{}, nil
+}
+
+// GetDeletedAt returns the item's deletedAt field value.
+func (r ListResponseResult) GetDeletedAt(resource string) (time.Time, error) {
+	if resource, ok := TimestampResources[resource]; ok {
+		if resource.DeletedAtFieldName != "" {
+			return r.GetTimeField(resource.DeletedAtFieldName)
+		}
+	}
+
+	return time.Time{}, nil
+}
 
 // GetTimeField returns a field by a provided field name and parses it into time.Time.
 func (r ListResponseResult) GetTimeField(name string) (time.Time, error) {

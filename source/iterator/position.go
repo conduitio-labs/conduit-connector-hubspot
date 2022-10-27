@@ -67,3 +67,19 @@ func ParsePosition(sdkPosition sdk.Position) (*Position, error) {
 
 	return &position, nil
 }
+
+// ConvertToCDCPosition converts a provided [sdk.Position] into the [Position],
+// updates its Mode to [CDCPositionMode] and marshals it back to the [sdk.Position].
+func ConvertToCDCPosition(sdkPosition sdk.Position) (sdk.Position, error) {
+	position, err := ParsePosition(sdkPosition)
+	if err != nil {
+		return sdk.Position{}, err
+	}
+
+	position.Mode = CDCPositionMode
+
+	now := time.Now().UTC()
+	position.Timestamp = &now
+
+	return position.MarshalSDKPosition()
+}
