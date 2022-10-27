@@ -253,8 +253,7 @@ func (c *Client) SearchByCreatedBefore(
 	ctx context.Context,
 	resource string,
 	createdBefore time.Time,
-	limit int,
-	after int,
+	limit, after int,
 ) (*ListResponse, error) {
 	searchResource, ok := SearchResources[resource]
 	if !ok {
