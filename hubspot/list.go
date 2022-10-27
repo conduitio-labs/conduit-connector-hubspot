@@ -65,6 +65,14 @@ var TimestampResources = map[string]TimestampResource{
 		UpdatedAtFieldName: "updatedAt",
 		DeletedAtFieldName: "deletedAt",
 	},
+	"cms.hubdb.tables": {
+		CreatedAtFieldName: "createdAt",
+		UpdatedAtFieldName: "updatedAt",
+	},
+	"cms.urlRedirects": {
+		CreatedAtFieldName: "createdAt",
+		UpdatedAtFieldName: "updatedAt",
+	},
 }
 
 // ResourcesListPaths holds a mapping of supported resources and their list endpoints.
@@ -80,15 +88,8 @@ var ResourcesListPaths = map[string]string{
 	"cms.pages.site":    "/cms/v3/pages/site-pages",
 	// https://developers.hubspot.com/docs/api/cms/hubdb
 	"cms.hubdb.tables": "/cms/v3/hubdb/tables",
-	// https://developers.hubspot.com/docs/api/cms/domains
-	"cms.domains": "/cms/v3/domains",
 	// https://developers.hubspot.com/docs/api/cms/url-redirects
 	"cms.urlRedirects": "/cms/v3/url-redirects",
-	// https://developers.hubspot.com/docs/api/conversations/conversations
-	"conversations.channels":        "/conversations/v3/conversations/channels",
-	"conversations.channelAccounts": "/conversations/v3/conversations/channel-accounts",
-	"conversations.inboxes":         "/conversations/v3/conversations/inboxes",
-	"conversations.threads":         "/conversations/v3/conversations/threads",
 	// https://developers.hubspot.com/docs/api/crm/companies
 	"crm.companies": "/crm/v3/objects/companies",
 	// https://developers.hubspot.com/docs/api/crm/contacts
@@ -115,16 +116,6 @@ var ResourcesListPaths = map[string]string{
 	"crm.notes": "/crm/v3/objects/notes",
 	// https://developers.hubspot.com/docs/api/crm/tasks
 	"crm.tasks": "/crm/v3/objects/tasks",
-	// https://developers.hubspot.com/docs/api/crm/imports
-	"crm.imports": "/crm/v3/imports",
-	// https://developers.hubspot.com/docs/api/crm/owners
-	"crm.owners": "/crm/v3/owners",
-	// https://developers.hubspot.com/docs/api/events/web-analytics
-	"events.web": "/events/v3/events",
-	// https://developers.hubspot.com/docs/api/marketing/forms
-	"marketing.forms": "/marketing/v3/forms",
-	// https://developers.hubspot.com/docs/api/settings/user-provisioning
-	"settings.users": "/settings/v3/users",
 }
 
 // ListOptions holds optional params for the [List] method.

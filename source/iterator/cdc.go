@@ -17,6 +17,7 @@ package iterator
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
@@ -94,6 +95,11 @@ func (c *CDC) Next(ctx context.Context) (sdk.Record, error) {
 	}
 }
 
+// Stop stops the iterator.
+func (c *CDC) Stop() {
+	c.stopC <- struct{}{}
+}
+
 // poll polls items at the specified time intervals.
 func (c *CDC) poll(ctx context.Context) {
 	ticker := time.NewTicker(c.pollingPeriod)
@@ -163,7 +169,8 @@ func (c *CDC) fetchTimestampBasedItems(
 			resource.CreatedAtFieldName,
 			resource.UpdatedAtFieldName,
 			resource.DeletedAtFieldName,
-			updatedAfter)
+			updatedAfter,
+		)
 		if err != nil {
 			return fmt.Errorf("route timestamp based item: %w", err)
 		}
@@ -223,11 +230,11 @@ func (c *CDC) routeItem(
 	metadata := make(sdk.Metadata)
 	metadata.SetCreatedAt(itemCreatedAt)
 
-	c.position = &Position{
-		Mode: CDCPositionMode,
-		// set the timestamp to the item's updatedAt
-		// as we sort items by their updatedAt values.
-		Timestamp: &itemUpdatedAt,
+	// set the timestamp to the item's updatedAt
+	// as we sort items by their updatedAt values.
+	c.position, err = c.getItemPosition(item, itemUpdatedAt)
+	if err != nil {
+		return fmt.Errorf("get item's position: %w", err)
 	}
 
 	sdkPosition, err := c.position.MarshalSDKPosition()
@@ -235,12 +242,10 @@ func (c *CDC) routeItem(
 		return fmt.Errorf("marshal sdk position: %w", err)
 	}
 
-	c.records <- c.getRecord(item,
-		itemCreatedAt,
-		itemDeletedAt,
-		updatedAfter,
-		sdkPosition,
-		metadata)
+	c.records <- c.getRecord(
+		item, itemCreatedAt, itemDeletedAt, updatedAfter,
+		sdkPosition, metadata,
+	)
 
 	return nil
 }
@@ -258,7 +263,7 @@ func (c *CDC) getRecord(item hubspot.ListResponseResult,
 	// So if the itemDeletedAt.Unix() is not equal to 0, than the item is deleted.
 	if itemDeletedAt.Unix() > 0 {
 		return sdk.Util.Source.NewRecordDelete(sdkPosition, metadata,
-			sdk.StructuredData{hubspot.ResultsFieldID: item[hubspot.ResultsFieldID]},
+			sdk.StructuredData{hubspot.ResultsFieldID: c.position.ItemID},
 		)
 	}
 
@@ -266,18 +271,33 @@ func (c *CDC) getRecord(item hubspot.ListResponseResult,
 	// we consider the item's operation to be sdk.OperationCreate.
 	if itemCreatedAt.After(updatedAfter) {
 		return sdk.Util.Source.NewRecordCreate(sdkPosition, metadata,
-			sdk.StructuredData{hubspot.ResultsFieldID: item[hubspot.ResultsFieldID]},
+			sdk.StructuredData{hubspot.ResultsFieldID: c.position.ItemID},
 			sdk.StructuredData(item),
 		)
 	}
 
 	return sdk.Util.Source.NewRecordUpdate(sdkPosition, metadata,
-		sdk.StructuredData{hubspot.ResultsFieldID: item[hubspot.ResultsFieldID]},
+		sdk.StructuredData{hubspot.ResultsFieldID: c.position.ItemID},
 		nil, sdk.StructuredData(item),
 	)
 }
 
-// Stop stops the iterator.
-func (c *CDC) Stop() {
-	c.stopC <- struct{}{}
+// getItemPosition grabs an id field from a provided item and constructs a [Position] based on its value.
+func (c *CDC) getItemPosition(item map[string]any, timestamp time.Time) (*Position, error) {
+	itemIDStr, ok := item[hubspot.ResultsFieldID].(string)
+	if !ok {
+		// this shouldn't happen cause HubSpot API v3 returns items with string identifiers.
+		return nil, ErrItemIDIsNotAString
+	}
+
+	itemID, err := strconv.Atoi(itemIDStr)
+	if err != nil {
+		return nil, fmt.Errorf("convert item's id string to integer: %w", err)
+	}
+
+	return &Position{
+		Mode:      CDCPositionMode,
+		ItemID:    itemID,
+		Timestamp: &timestamp,
+	}, nil
 }
