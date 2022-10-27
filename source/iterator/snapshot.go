@@ -66,8 +66,13 @@ func NewSnapshot(ctx context.Context, params SnapshotParams) (*Snapshot, error) 
 		initialTimestamp: time.Now().UTC(),
 	}
 
-	if snapshot.position != nil && snapshot.position.Timestamp != nil {
-		snapshot.initialTimestamp = *snapshot.position.Timestamp
+	if snapshot.position != nil && snapshot.position.InitialTimestamp != nil {
+		snapshot.initialTimestamp = *snapshot.position.InitialTimestamp
+	} else {
+		snapshot.position = &Position{
+			Mode:             SnapshotPositionMode,
+			InitialTimestamp: &snapshot.initialTimestamp,
+		}
 	}
 
 	if err := snapshot.loadRecords(ctx); err != nil {
@@ -147,10 +152,13 @@ func (s *Snapshot) loadRecords(ctx context.Context) error {
 			return fmt.Errorf("get item's update date: %w", err)
 		}
 
-		s.position, err = s.getItemPosition(item, itemCreatedAt)
+		newPosition, err := s.getItemPosition(item, itemCreatedAt)
 		if err != nil {
 			return fmt.Errorf("get item's position: %w", err)
 		}
+
+		s.position.Timestamp = newPosition.Timestamp
+		s.position.ItemID = newPosition.ItemID
 
 		sdkPosition, err := s.position.MarshalSDKPosition()
 		if err != nil {
@@ -252,7 +260,6 @@ func (s *Snapshot) getItemPosition(item map[string]any, timestamp time.Time) (*P
 	}
 
 	return &Position{
-		Mode:      SnapshotPositionMode,
 		ItemID:    itemID,
 		Timestamp: &timestamp,
 	}, nil
