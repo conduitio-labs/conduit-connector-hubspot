@@ -166,8 +166,8 @@ func (s *Snapshot) loadRecords(ctx context.Context) error {
 // listItems returns items depending on what resource it is.
 // It supports both timestamp- and search-based resources.
 func (s *Snapshot) listItems(ctx context.Context) (*hubspot.ListResponse, error) {
-	if _, ok := hubspot.TimestampResources[s.resource]; ok {
-		return s.listTimestampBasedItems(ctx)
+	if resource, ok := hubspot.TimestampResources[s.resource]; ok {
+		return s.listTimestampBasedItems(ctx, resource)
 	}
 
 	if _, ok := hubspot.SearchResources[s.resource]; ok {
@@ -182,7 +182,10 @@ func (s *Snapshot) listItems(ctx context.Context) (*hubspot.ListResponse, error)
 
 // listTimestampBasedItems retrieves timestamp-based items using limit, after and createdBefore query parameters.
 // The createdBefore parameter is equal to the [Snapshot]'s initialTimestamp value.
-func (s *Snapshot) listTimestampBasedItems(ctx context.Context) (*hubspot.ListResponse, error) {
+func (s *Snapshot) listTimestampBasedItems(
+	ctx context.Context,
+	resource hubspot.TimestampResource,
+) (*hubspot.ListResponse, error) {
 	if s.nextLink != "" {
 		listResponse, err := s.hubspotClient.ListByNextLink(ctx, s.nextLink)
 		if err != nil {
@@ -195,6 +198,7 @@ func (s *Snapshot) listTimestampBasedItems(ctx context.Context) (*hubspot.ListRe
 	listOpts := &hubspot.ListOptions{
 		Limit:         s.bufferSize,
 		CreatedBefore: &s.initialTimestamp,
+		Sort:          resource.CreatedAtFieldName,
 	}
 
 	listResponse, err := s.hubspotClient.List(ctx, s.resource, listOpts)
