@@ -20,9 +20,8 @@ import (
 	"strconv"
 	"time"
 
-	sdk "github.com/conduitio/conduit-connector-sdk"
-
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
+	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
 // CDC is an implementation of a CDC iterator for the HubSpot API.

@@ -39,7 +39,7 @@ type Snapshot struct {
 	initialTimestamp time.Time
 	// nextLink is used for timestamp-based resources.
 	nextLink string
-	// hasMoreItems is used for search-based resources.
+	// hasMoreItems is used for both timestamp- and search-based resources.
 	hasMoreItems bool
 }
 
@@ -77,7 +77,7 @@ func NewSnapshot(ctx context.Context, params SnapshotParams) (*Snapshot, error) 
 
 // HasNext returns a bool indicating whether the iterator has the next record to return or not.
 func (s *Snapshot) HasNext(ctx context.Context) (bool, error) {
-	return len(s.records) > 0 || s.nextLink != "" || s.hasMoreItems, nil
+	return len(s.records) > 0 || s.hasMoreItems, nil
 }
 
 // Next returns the next record.
