@@ -263,7 +263,7 @@ func (c *Client) SearchByCreatedBefore(
 		}
 	}
 
-	// create filters based on a provided arguments
+	// create filters based on provided arguments
 	filters := []SearchRequestFilterGroupFilter{
 		{
 			PropertyName: searchResource.CreatedAtSortName,
