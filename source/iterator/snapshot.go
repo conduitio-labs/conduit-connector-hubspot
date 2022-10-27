@@ -34,6 +34,13 @@ type Snapshot struct {
 	errC          chan error
 	stopC         chan struct{}
 	position      *Position
+	// initialTimestamp will be used to retrieve all items
+	// that are created before this date.
+	initialTimestamp time.Time
+	// nextLink is used for timestamp-based resources.
+	nextLink string
+	// hasMoreItems is used for search-based resources.
+	hasMoreItems bool
 }
 
 // SnapshotParams is an incoming params for the [NewSnapshot] function.
@@ -48,14 +55,15 @@ type SnapshotParams struct {
 // NewSnapshot creates a new instance of the [Snapshot].
 func NewSnapshot(ctx context.Context, params SnapshotParams) (*Snapshot, error) {
 	snapshot := &Snapshot{
-		hubspotClient: params.HubSpotClient,
-		resource:      params.Resource,
-		bufferSize:    params.BufferSize,
-		pollingPeriod: params.PollingPeriod,
-		records:       make(chan sdk.Record, params.BufferSize),
-		errC:          make(chan error, 1),
-		stopC:         make(chan struct{}, 1),
-		position:      params.Position,
+		hubspotClient:    params.HubSpotClient,
+		resource:         params.Resource,
+		bufferSize:       params.BufferSize,
+		pollingPeriod:    params.PollingPeriod,
+		records:          make(chan sdk.Record, params.BufferSize),
+		errC:             make(chan error, 1),
+		stopC:            make(chan struct{}, 1),
+		position:         params.Position,
+		initialTimestamp: time.Now().UTC(),
 	}
 
 	if err := snapshot.loadRecords(ctx); err != nil {
@@ -69,7 +77,7 @@ func NewSnapshot(ctx context.Context, params SnapshotParams) (*Snapshot, error) 
 
 // HasNext returns a bool indicating whether the iterator has the next record to return or not.
 func (s *Snapshot) HasNext(ctx context.Context) (bool, error) {
-	return len(s.records) > 0, nil
+	return len(s.records) > 0 || s.nextLink != "" || s.hasMoreItems, nil
 }
 
 // Next returns the next record.
@@ -108,19 +116,20 @@ func (s *Snapshot) poll(ctx context.Context) {
 
 // loadRecords retrieves a new list of the iterator's resource items.
 func (s *Snapshot) loadRecords(ctx context.Context) error {
-	listOpts := &hubspot.ListOptions{
-		Limit: s.bufferSize,
-	}
-
-	if s.position != nil {
-		// add one here in order to skip
-		// this particular item and start from the next one.
-		listOpts.After = strconv.Itoa(s.position.ItemID + 1)
-	}
-
-	listResponse, err := s.hubspotClient.List(ctx, s.resource, listOpts)
+	listResponse, err := s.listItems(ctx)
 	if err != nil {
 		return fmt.Errorf("list %q items: %w", s.resource, err)
+	}
+
+	// if the listResponse.Paging is not nil we can retrieve more items by its next link
+	// if a resource is timestamp-based. If a resource is search-based and there are more items
+	// the listResponse.Paging will be not nil but its nextLink will be empty.
+	// if the listResponse.Paging is nil we'll set the nextLink to an empty string.
+	s.hasMoreItems = listResponse.Paging != nil
+	if s.hasMoreItems {
+		s.nextLink = listResponse.Paging.Next.Link
+	} else {
+		s.nextLink = ""
 	}
 
 	for _, item := range listResponse.Results {
@@ -147,6 +156,68 @@ func (s *Snapshot) loadRecords(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// listItems returns items depending on what resource it is.
+// It supports both timestamp- and search-based resources.
+func (s *Snapshot) listItems(ctx context.Context) (*hubspot.ListResponse, error) {
+	if _, ok := hubspot.TimestampResources[s.resource]; ok {
+		return s.listTimestampBasedItems(ctx)
+	}
+
+	if _, ok := hubspot.SearchResources[s.resource]; ok {
+		return s.listSearchBasedItems(ctx)
+	}
+
+	// this shouldn't happen because we have validation
+	return nil, &hubspot.UnsupportedResourceError{
+		Resource: s.resource,
+	}
+}
+
+// listTimestampBasedItems retrieves timestamp-based items using limit, after and createdBefore query parameters.
+// The createdBefore parameter is equal to the [Snapshot]'s initialTimestamp value.
+func (s *Snapshot) listTimestampBasedItems(ctx context.Context) (*hubspot.ListResponse, error) {
+	if s.nextLink != "" {
+		listResponse, err := s.hubspotClient.ListByNextLink(ctx, s.nextLink)
+		if err != nil {
+			return nil, fmt.Errorf("list timestamp items by next link: %w", err)
+		}
+
+		return listResponse, nil
+	}
+
+	listOpts := &hubspot.ListOptions{
+		Limit:         s.bufferSize,
+		CreatedBefore: &s.initialTimestamp,
+	}
+
+	listResponse, err := s.hubspotClient.List(ctx, s.resource, listOpts)
+	if err != nil {
+		return nil, fmt.Errorf("list timestamp items: %w", err)
+	}
+
+	return listResponse, nil
+}
+
+// listSearchBasedItems retrieves search-based items using limit, after and createdBefore filters.
+// The createdBefore parameter is equal to the [Snapshot]'s initialTimestamp value.
+func (s *Snapshot) listSearchBasedItems(ctx context.Context) (*hubspot.ListResponse, error) {
+	var after int
+	if s.position != nil {
+		// add one here in order to skip
+		// this particular item and start from the next one.
+		after = s.position.ItemID + 1
+	}
+
+	listResponse, err := s.hubspotClient.SearchByCreatedBefore(
+		ctx, s.resource, s.initialTimestamp, s.bufferSize, after,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list search items: %w", err)
+	}
+
+	return listResponse, nil
 }
 
 // getItemPosition grabs an id field from a provided item and constructs a [Position] based on its value.

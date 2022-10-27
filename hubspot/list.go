@@ -120,12 +120,13 @@ var ResourcesListPaths = map[string]string{
 
 // ListOptions holds optional params for the [List] method.
 type ListOptions struct {
-	Limit        int        `url:"limit,omitempty"`
-	After        string     `url:"after,omitempty"`
-	CreatedAfter *time.Time `url:"createdAfter,omitempty" layout:"2006-01-02T15:04:05.000Z"`
-	UpdatedAfter *time.Time `url:"updatedAfter,omitempty" layout:"2006-01-02T15:04:05.000Z"`
-	Sort         string     `url:"sort,omitempty"`
-	Archived     bool       `url:"archived,omitempty"`
+	Limit         int        `url:"limit,omitempty"`
+	After         string     `url:"after,omitempty"`
+	CreatedAfter  *time.Time `url:"createdAfter,omitempty" layout:"2006-01-02T15:04:05.000Z"`
+	UpdatedAfter  *time.Time `url:"updatedAfter,omitempty" layout:"2006-01-02T15:04:05.000Z"`
+	CreatedBefore *time.Time `url:"createdBefore,omitempty" layout:"2006-01-02T15:04:05.000Z"`
+	Sort          string     `url:"sort,omitempty"`
+	Archived      bool       `url:"archived,omitempty"`
 }
 
 // ListResponse is a common response model for endpoints that returns a list of results.
@@ -184,6 +185,22 @@ func (c *Client) List(ctx context.Context, resource string, opts *ListOptions) (
 	}
 
 	req, err := c.newRequest(ctx, http.MethodGet, resourcePath, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create new request: %w", err)
+	}
+
+	var resp ListResponse
+	if err := c.do(req, &resp); err != nil {
+		return nil, fmt.Errorf("do request: %w", err)
+	}
+
+	return &resp, nil
+}
+
+// ListByNextLink retrieves a list of items by a next link.
+// It doesn't require specifying filters and resources manually.
+func (c *Client) ListByNextLink(ctx context.Context, nextLink string) (*ListResponse, error) {
+	req, err := c.newRequest(ctx, http.MethodGet, nextLink, nil)
 	if err != nil {
 		return nil, fmt.Errorf("create new request: %w", err)
 	}

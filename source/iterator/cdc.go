@@ -159,12 +159,12 @@ func (c *CDC) fetchTimestampBasedItems(
 		Archived:     true,
 	}
 
-	listResp, err := c.hubspotClient.List(ctx, c.resource, listOpts)
+	listResponse, err := c.hubspotClient.List(ctx, c.resource, listOpts)
 	if err != nil {
 		return fmt.Errorf("list items: %w", err)
 	}
 
-	for _, item := range listResp.Results {
+	for _, item := range listResponse.Results {
 		err = c.routeItem(item,
 			resource.CreatedAtFieldName,
 			resource.UpdatedAtFieldName,
@@ -185,12 +185,12 @@ func (c *CDC) fetchSearchBasedItems(
 	resource hubspot.SearchResource,
 	updatedAfter time.Time,
 ) error {
-	listResp, err := c.hubspotClient.SearchByUpdatedAfter(ctx, c.resource, updatedAfter, c.bufferSize)
+	listResponse, err := c.hubspotClient.SearchByUpdatedAfter(ctx, c.resource, updatedAfter, c.bufferSize)
 	if err != nil {
 		return fmt.Errorf("list items: %w", err)
 	}
 
-	for _, item := range listResp.Results {
+	for _, item := range listResponse.Results {
 		err = c.routeItem(item, resource.CreatedAtFieldName, resource.UpdatedAtFieldName, "", updatedAfter)
 		if err != nil {
 			return fmt.Errorf("route search based item: %w", err)
