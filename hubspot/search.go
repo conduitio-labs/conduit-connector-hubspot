@@ -204,7 +204,7 @@ func (c *Client) Search(ctx context.Context, resource string, request *SearchReq
 
 	var resp ListResponse
 	if err := c.do(req, &resp); err != nil {
-		return nil, fmt.Errorf("do request: %w", err)
+		return nil, fmt.Errorf("execute request: %w", err)
 	}
 
 	return &resp, nil

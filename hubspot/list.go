@@ -225,7 +225,7 @@ func (c *Client) List(ctx context.Context, resource string, opts *ListOptions) (
 
 	var resp ListResponse
 	if err := c.do(req, &resp); err != nil {
-		return nil, fmt.Errorf("do request: %w", err)
+		return nil, fmt.Errorf("execute request: %w", err)
 	}
 
 	return &resp, nil
@@ -241,7 +241,7 @@ func (c *Client) ListByNextLink(ctx context.Context, nextLink string) (*ListResp
 
 	var resp ListResponse
 	if err := c.do(req, &resp); err != nil {
-		return nil, fmt.Errorf("do request: %w", err)
+		return nil, fmt.Errorf("execute request: %w", err)
 	}
 
 	return &resp, nil
