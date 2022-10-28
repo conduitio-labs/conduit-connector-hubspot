@@ -48,7 +48,7 @@ Here's an example of a Snapshot position:
 
 **CDC**. The position in this mode contains the same fields as in the Snapshot mode plus a `timestamp` that is equal to the `updatedAt` of the last processed item.
 
-Here's an example of a Snapshot position:
+Here's an example of a CDC position:
 
 ```json
 {
