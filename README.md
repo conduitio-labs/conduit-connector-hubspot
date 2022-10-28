@@ -64,7 +64,7 @@ Here's an example of a CDC position:
 | name            | description                                                                                                                      | required | default |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
 | `accessToken`   | The private app access token for accessing the HubSpot API.                                                                      | **true** |         |
-| `resource`      | The HubSpot resource that the connector will work with.<br />You can find a list of the available resource [here](docs/resources.md). | **true** |         |
+| `resource`      | The HubSpot resource that the connector will work with.<br />You can find a list of the available resources [here](docs/resources.md). | **true** |         |
 | `maxRetries`    | The number of HubSpot API request retries attempts that will be tried before giving up if a request fails.                       | false    | `4`     |
 | `pollingPeriod` | The duration that defines a period of polling new items.                                                                         | false    | `5s`    |
 | `bufferSize`    | The buffer size for consumed items.<br />It will also be used as a limit when retrieving items from the HubSpot API.             | false    | `100`   |
