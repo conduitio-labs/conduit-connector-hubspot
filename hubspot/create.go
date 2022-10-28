@@ -33,15 +33,8 @@ var ResourcesCreatePaths = map[string]string{
 	"cms.pages.site":    "/cms/v3/pages/site-pages",
 	// https://developers.hubspot.com/docs/api/cms/hubdb
 	"cms.hubdb.tables": "/cms/v3/hubdb/tables",
-	// https://developers.hubspot.com/docs/api/cms/domains
-	"cms.domains": "/cms/v3/domains",
 	// https://developers.hubspot.com/docs/api/cms/url-redirects
 	"cms.urlRedirects": "/cms/v3/url-redirects",
-	// https://developers.hubspot.com/docs/api/conversations/conversations
-	"conversations.channels":        "/conversations/v3/conversations/channels",
-	"conversations.channelAccounts": "/conversations/v3/conversations/channel-accounts",
-	"conversations.inboxes":         "/conversations/v3/conversations/inboxes",
-	"conversations.threads":         "/conversations/v3/conversations/threads",
 	// https://developers.hubspot.com/docs/api/crm/companies
 	"crm.companies": "/crm/v3/objects/companies",
 	// https://developers.hubspot.com/docs/api/crm/contacts
@@ -69,9 +62,6 @@ var ResourcesCreatePaths = map[string]string{
 	// https://developers.hubspot.com/docs/api/crm/tasks
 	"crm.tasks": "/crm/v3/objects/tasks",
 	// https://developers.hubspot.com/docs/api/marketing/forms
-	"marketing.forms": "/marketing/v3/forms",
-	// https://developers.hubspot.com/docs/api/settings/user-provisioning
-	"settings.users": "/settings/v3/users",
 }
 
 // Create creates a new item of a specific resource.

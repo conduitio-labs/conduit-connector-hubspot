@@ -36,8 +36,6 @@ var ResourcesDeletePaths = map[string]string{
 	"cms.hubdb.tables": "/cms/v3/hubdb/tables/{objectId}/draft",
 	// https://developers.hubspot.com/docs/api/cms/url-redirects
 	"cms.urlRedirects": "/cms/v3/url-redirects/{objectId}",
-	// https://developers.hubspot.com/docs/api/conversations/conversations
-	"conversations.threads": "/conversations/v3/conversations/threads/{objectId}",
 	// https://developers.hubspot.com/docs/api/crm/companies
 	"crm.companies": "/crm/v3/objects/companies/{objectId}",
 	// https://developers.hubspot.com/docs/api/crm/contacts
@@ -64,10 +62,6 @@ var ResourcesDeletePaths = map[string]string{
 	"crm.notes": "/crm/v3/objects/notes/{objectId}",
 	// https://developers.hubspot.com/docs/api/crm/tasks
 	"crm.tasks": "/crm/v3/objects/tasks/{objectId}",
-	// https://developers.hubspot.com/docs/api/marketing/forms
-	"marketing.forms": "/marketing/v3/forms/{objectId}",
-	// https://developers.hubspot.com/docs/api/settings/user-provisioning
-	"settings.users": "/settings/v3/users/{objectId}",
 }
 
 // Delete tries to dekete an existing item of a specific resource.

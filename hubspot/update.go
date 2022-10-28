@@ -57,10 +57,6 @@ var ResourcesUpdatePaths = map[string]ResourceUpdatePath{
 	"cms.urlRedirects": {
 		Path: "/cms/v3/url-redirects/{objectId}", Method: http.MethodPatch,
 	},
-	// https://developers.hubspot.com/docs/api/conversations/conversations
-	"conversations.threads": {
-		Path: "/conversations/v3/conversations/threads/{objectId}", Method: http.MethodPatch,
-	},
 	// https://developers.hubspot.com/docs/api/crm/companies
 	"crm.companies": {
 		Path: "/crm/v3/objects/companies/{objectId}", Method: http.MethodPatch,
@@ -112,14 +108,6 @@ var ResourcesUpdatePaths = map[string]ResourceUpdatePath{
 	// https://developers.hubspot.com/docs/api/crm/tasks
 	"crm.tasks": {
 		Path: "/crm/v3/objects/tasks/{objectId}", Method: http.MethodPatch,
-	},
-	// https://developers.hubspot.com/docs/api/marketing/forms
-	"marketing.forms": {
-		Path: "/marketing/v3/forms/{objectId}", Method: http.MethodPatch,
-	},
-	// https://developers.hubspot.com/docs/api/settings/user-provisioning
-	"settings.users": {
-		Path: "/settings/v3/users/{objectId}", Method: http.MethodPut,
 	},
 }
 
