@@ -83,7 +83,7 @@ func (c *Combined) HasNext(ctx context.Context) (bool, error) {
 			return false, fmt.Errorf("snapshot has next: %w", err)
 		}
 
-		if !hasNext && c.isCDCSupported() {
+		if !hasNext {
 			sdk.Logger(ctx).Debug().Msgf("switching to the CDC mode")
 
 			if err := c.switchToCDCIterator(ctx); err != nil {
@@ -117,19 +117,6 @@ func (c *Combined) Next(ctx context.Context) (sdk.Record, error) {
 	}
 }
 
-// isCDCSupported checks whether the iterator's resource supports CDC or not.
-func (c *Combined) isCDCSupported() bool {
-	if _, ok := hubspot.TimestampResources[c.resource]; ok {
-		return true
-	}
-
-	if _, ok := hubspot.SearchResources[c.resource]; ok {
-		return true
-	}
-
-	return false
-}
-
 // switchToCDCIterator initializes the cdc iterator, and set the snapshot to nil.
 func (c *Combined) switchToCDCIterator(ctx context.Context) error {
 	var err error
@@ -138,6 +125,10 @@ func (c *Combined) switchToCDCIterator(ctx context.Context) error {
 		Resource:      c.resource,
 		BufferSize:    c.bufferSize,
 		PollingPeriod: c.pollingPeriod,
+		Position: &Position{
+			Mode:      CDCPositionMode,
+			Timestamp: &c.snapshot.initialTimestamp,
+		},
 	})
 	if err != nil {
 		return fmt.Errorf("init cdc iterator: %w", err)

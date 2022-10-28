@@ -27,6 +27,8 @@ const (
 	GTEOperator = "GTE"
 	// EQOperator is an equal operator for search endpoints.
 	EQOperator = "EQ"
+	// LTEOperator is a less then or equal to operator for search endpoints.
+	LTEOperator = "LTE"
 )
 
 // ASCSortDirection stands for ascending sorting order.
@@ -37,7 +39,9 @@ type SearchResource struct {
 	Path               string
 	CreatedAtFieldName string
 	UpdatedAtFieldName string
+	CreatedAtSortName  string
 	UpdatedAtSortName  string
+	ObjectIDFilterName string
 }
 
 // SearchResources holds a mapping of resources that have search endpoints.
@@ -47,91 +51,117 @@ var SearchResources = map[string]SearchResource{
 		Path:               "/crm/v3/objects/companies/search",
 		CreatedAtFieldName: "createdAt",
 		UpdatedAtFieldName: "updatedAt",
+		CreatedAtSortName:  "createdate",
 		UpdatedAtSortName:  "hs_lastmodifieddate",
+		ObjectIDFilterName: "hs_object_id",
 	},
 	// https://developers.hubspot.com/docs/api/crm/contacts
 	"crm.contacts": {
 		Path:               "/crm/v3/objects/contacts/search",
 		CreatedAtFieldName: "createdAt",
 		UpdatedAtFieldName: "updatedAt",
+		CreatedAtSortName:  "createdate",
 		UpdatedAtSortName:  "lastmodifieddate",
+		ObjectIDFilterName: "hs_object_id",
 	},
 	// https://developers.hubspot.com/docs/api/crm/deals
 	"crm.deals": {
 		Path:               "/crm/v3/objects/deals/search",
 		CreatedAtFieldName: "createdAt",
 		UpdatedAtFieldName: "updatedAt",
+		CreatedAtSortName:  "createdate",
 		UpdatedAtSortName:  "hs_lastmodifieddate",
+		ObjectIDFilterName: "hs_object_id",
 	},
 	// https://developers.hubspot.com/docs/api/crm/feedback-submissions
 	"crm.feedbackSubmissions": {
 		Path:               "/crm/v3/objects/feedback_submissions/search",
 		CreatedAtFieldName: "createdAt",
 		UpdatedAtFieldName: "updatedAt",
+		CreatedAtSortName:  "hs_createdate",
 		UpdatedAtSortName:  "hs_lastmodifieddate",
+		ObjectIDFilterName: "hs_object_id",
 	},
 	// https://developers.hubspot.com/docs/api/crm/line-items
 	"crm.lineItems": {
 		Path:               "/crm/v3/objects/line_items/search",
 		CreatedAtFieldName: "createdAt",
 		UpdatedAtFieldName: "updatedAt",
+		CreatedAtSortName:  "createdate",
 		UpdatedAtSortName:  "hs_lastmodifieddate",
+		ObjectIDFilterName: "hs_object_id",
 	},
 	// https://developers.hubspot.com/docs/api/crm/products
 	"crm.products": {
 		Path:               "/crm/v3/objects/products/search",
 		CreatedAtFieldName: "createdAt",
 		UpdatedAtFieldName: "updatedAt",
+		CreatedAtSortName:  "createdate",
 		UpdatedAtSortName:  "hs_lastmodifieddate",
+		ObjectIDFilterName: "hs_object_id",
 	},
 	// https://developers.hubspot.com/docs/api/crm/tickets
 	"crm.tickets": {
 		Path:               "/crm/v3/objects/tickets/search",
 		CreatedAtFieldName: "createdAt",
 		UpdatedAtFieldName: "updatedAt",
+		CreatedAtSortName:  "createdate",
 		UpdatedAtSortName:  "hs_lastmodifieddate",
+		ObjectIDFilterName: "hs_object_id",
 	},
 	// https://developers.hubspot.com/docs/api/crm/quotes
 	"crm.quotes": {
 		Path:               "/crm/v3/objects/quotes/search",
 		CreatedAtFieldName: "createdAt",
 		UpdatedAtFieldName: "updatedAt",
+		CreatedAtSortName:  "hs_createdate",
 		UpdatedAtSortName:  "hs_lastmodifieddate",
+		ObjectIDFilterName: "hs_object_id",
 	},
 	// https://developers.hubspot.com/docs/api/crm/calls
 	"crm.calls": {
 		Path:               "/crm/v3/objects/calls/search",
 		CreatedAtFieldName: "createdAt",
 		UpdatedAtFieldName: "updatedAt",
+		CreatedAtSortName:  "hs_createdate",
 		UpdatedAtSortName:  "hs_lastmodifieddate",
+		ObjectIDFilterName: "hs_object_id",
 	},
 	// https://developers.hubspot.com/docs/api/crm/email
 	"crm.emails": {
 		Path:               "/crm/v3/objects/emails/search",
 		CreatedAtFieldName: "createdAt",
 		UpdatedAtFieldName: "updatedAt",
+		CreatedAtSortName:  "hs_createdate",
 		UpdatedAtSortName:  "hs_lastmodifieddate",
+		ObjectIDFilterName: "hs_object_id",
 	},
 	// https://developers.hubspot.com/docs/api/crm/meetings
 	"crm.meetings": {
 		Path:               "/crm/v3/objects/meetings/search",
 		CreatedAtFieldName: "createdAt",
 		UpdatedAtFieldName: "updatedAt",
+		CreatedAtSortName:  "hs_createdate",
 		UpdatedAtSortName:  "hs_lastmodifieddate",
+		ObjectIDFilterName: "hs_object_id",
 	},
 	// https://developers.hubspot.com/docs/api/crm/notes
 	"crm.notes": {
 		Path:               "/crm/v3/objects/notes/search",
 		CreatedAtFieldName: "createdAt",
 		UpdatedAtFieldName: "updatedAt",
+		CreatedAtSortName:  "hs_createdate",
 		UpdatedAtSortName:  "hs_lastmodifieddate",
+		ObjectIDFilterName: "hs_object_id",
 	},
 	// https://developers.hubspot.com/docs/api/crm/tasks
 	"crm.tasks": {
 		Path:               "/crm/v3/objects/tasks/search",
 		CreatedAtFieldName: "createdAt",
 		UpdatedAtFieldName: "updatedAt",
+		CreatedAtSortName:  "hs_createdate",
 		UpdatedAtSortName:  "hs_lastmodifieddate",
+		ObjectIDFilterName: "hs_object_id",
 	},
 }
 
@@ -176,7 +206,7 @@ func (c *Client) Search(ctx context.Context, resource string, request *SearchReq
 
 	var resp ListResponse
 	if err := c.do(req, &resp); err != nil {
-		return nil, fmt.Errorf("do request: %w", err)
+		return nil, fmt.Errorf("execute request: %w", err)
 	}
 
 	return &resp, nil
@@ -217,4 +247,60 @@ func (c *Client) SearchByUpdatedAfter(
 			},
 		},
 	})
+}
+
+// SearchByCreatedBefore is a wrapper that calls the [Search] method returning only those results
+// that were created before a specific date and ordering them ascendingly by createdAt field.
+func (c *Client) SearchByCreatedBefore(
+	ctx context.Context,
+	resource string,
+	createdBefore time.Time,
+	limit, after int,
+) (*ListResponse, error) {
+	searchResource, ok := SearchResources[resource]
+	if !ok {
+		return nil, &UnsupportedResourceError{
+			Resource: resource,
+		}
+	}
+
+	// create filters based on provided arguments
+	filters := []SearchRequestFilterGroupFilter{
+		{
+			PropertyName: searchResource.CreatedAtSortName,
+			Operator:     LTEOperator,
+			Value:        strconv.Itoa(int(createdBefore.UnixMilli())),
+		},
+	}
+
+	if after != 0 {
+		filters = append(filters, SearchRequestFilterGroupFilter{
+			PropertyName: searchResource.ObjectIDFilterName,
+			Operator:     GTEOperator,
+			Value:        strconv.Itoa(after),
+		})
+	}
+
+	// construct request body with the created filters and sorting
+	req := &SearchRequest{
+		FilterGroups: []SearchRequestFilterGroup{
+			{
+				Filters: filters,
+			},
+		},
+		Sorts: []SearchRequestSort{
+			{
+				PropertyName: searchResource.CreatedAtSortName,
+				Direction:    ASCSortDirection,
+			},
+		},
+	}
+
+	// we'll use the limit if it's not zero
+	// by default HubSpot set this value to 100
+	if limit != 0 {
+		req.Limit = strconv.Itoa(limit)
+	}
+
+	return c.Search(ctx, resource, req)
 }

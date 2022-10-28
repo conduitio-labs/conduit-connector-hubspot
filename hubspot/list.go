@@ -28,9 +28,6 @@ const (
 	ResultsFieldCreatedAt string = "createdAt"
 )
 
-// UpdatedAtListSortKey is used as a value for the sort list option.
-const UpdatedAtListSortKey = "updatedAt"
-
 // TimestampResource holds a createdAt, and updatedAt field names.
 type TimestampResource struct {
 	CreatedAtFieldName string
@@ -65,6 +62,14 @@ var TimestampResources = map[string]TimestampResource{
 		UpdatedAtFieldName: "updatedAt",
 		DeletedAtFieldName: "deletedAt",
 	},
+	"cms.hubdb.tables": {
+		CreatedAtFieldName: "createdAt",
+		UpdatedAtFieldName: "updatedAt",
+	},
+	"cms.urlRedirects": {
+		CreatedAtFieldName: "createdAt",
+		UpdatedAtFieldName: "updatedAt",
+	},
 }
 
 // ResourcesListPaths holds a mapping of supported resources and their list endpoints.
@@ -80,15 +85,8 @@ var ResourcesListPaths = map[string]string{
 	"cms.pages.site":    "/cms/v3/pages/site-pages",
 	// https://developers.hubspot.com/docs/api/cms/hubdb
 	"cms.hubdb.tables": "/cms/v3/hubdb/tables",
-	// https://developers.hubspot.com/docs/api/cms/domains
-	"cms.domains": "/cms/v3/domains",
 	// https://developers.hubspot.com/docs/api/cms/url-redirects
 	"cms.urlRedirects": "/cms/v3/url-redirects",
-	// https://developers.hubspot.com/docs/api/conversations/conversations
-	"conversations.channels":        "/conversations/v3/conversations/channels",
-	"conversations.channelAccounts": "/conversations/v3/conversations/channel-accounts",
-	"conversations.inboxes":         "/conversations/v3/conversations/inboxes",
-	"conversations.threads":         "/conversations/v3/conversations/threads",
 	// https://developers.hubspot.com/docs/api/crm/companies
 	"crm.companies": "/crm/v3/objects/companies",
 	// https://developers.hubspot.com/docs/api/crm/contacts
@@ -115,26 +113,17 @@ var ResourcesListPaths = map[string]string{
 	"crm.notes": "/crm/v3/objects/notes",
 	// https://developers.hubspot.com/docs/api/crm/tasks
 	"crm.tasks": "/crm/v3/objects/tasks",
-	// https://developers.hubspot.com/docs/api/crm/imports
-	"crm.imports": "/crm/v3/imports",
-	// https://developers.hubspot.com/docs/api/crm/owners
-	"crm.owners": "/crm/v3/owners",
-	// https://developers.hubspot.com/docs/api/events/web-analytics
-	"events.web": "/events/v3/events",
-	// https://developers.hubspot.com/docs/api/marketing/forms
-	"marketing.forms": "/marketing/v3/forms",
-	// https://developers.hubspot.com/docs/api/settings/user-provisioning
-	"settings.users": "/settings/v3/users",
 }
 
 // ListOptions holds optional params for the [List] method.
 type ListOptions struct {
-	Limit        int        `url:"limit,omitempty"`
-	After        string     `url:"after,omitempty"`
-	CreatedAfter *time.Time `url:"createdAfter,omitempty" layout:"2006-01-02T15:04:05.000Z"`
-	UpdatedAfter *time.Time `url:"updatedAfter,omitempty" layout:"2006-01-02T15:04:05.000Z"`
-	Sort         string     `url:"sort,omitempty"`
-	Archived     bool       `url:"archived,omitempty"`
+	Limit         int        `url:"limit,omitempty"`
+	After         string     `url:"after,omitempty"`
+	CreatedAfter  *time.Time `url:"createdAfter,omitempty" layout:"2006-01-02T15:04:05.000Z"`
+	UpdatedAfter  *time.Time `url:"updatedAfter,omitempty" layout:"2006-01-02T15:04:05.000Z"`
+	CreatedBefore *time.Time `url:"createdBefore,omitempty" layout:"2006-01-02T15:04:05.000Z"`
+	Sort          string     `url:"sort,omitempty"`
+	Archived      bool       `url:"archived,omitempty"`
 }
 
 // ListResponse is a common response model for endpoints that returns a list of results.
@@ -147,6 +136,43 @@ type ListResponse struct {
 
 // ListResponseResult is a result object for the [ListResponse].
 type ListResponseResult map[string]any
+
+// GetCreatedAt returns the item's createdAt field value.
+func (r ListResponseResult) GetCreatedAt(resource string) (time.Time, error) {
+	if resource, ok := TimestampResources[resource]; ok {
+		return r.GetTimeField(resource.CreatedAtFieldName)
+	}
+
+	if resource, ok := SearchResources[resource]; ok {
+		return r.GetTimeField(resource.CreatedAtFieldName)
+	}
+
+	return time.Time{}, nil
+}
+
+// GetUpdatedAt returns the item's updatedAt field value.
+func (r ListResponseResult) GetUpdatedAt(resource string) (time.Time, error) {
+	if resource, ok := TimestampResources[resource]; ok {
+		return r.GetTimeField(resource.UpdatedAtFieldName)
+	}
+
+	if resource, ok := SearchResources[resource]; ok {
+		return r.GetTimeField(resource.UpdatedAtFieldName)
+	}
+
+	return time.Time{}, nil
+}
+
+// GetDeletedAt returns the item's deletedAt field value.
+func (r ListResponseResult) GetDeletedAt(resource string) (time.Time, error) {
+	if resource, ok := TimestampResources[resource]; ok {
+		if resource.DeletedAtFieldName != "" {
+			return r.GetTimeField(resource.DeletedAtFieldName)
+		}
+	}
+
+	return time.Time{}, nil
+}
 
 // GetTimeField returns a field by a provided field name and parses it into time.Time.
 func (r ListResponseResult) GetTimeField(name string) (time.Time, error) {
@@ -199,7 +225,23 @@ func (c *Client) List(ctx context.Context, resource string, opts *ListOptions) (
 
 	var resp ListResponse
 	if err := c.do(req, &resp); err != nil {
-		return nil, fmt.Errorf("do request: %w", err)
+		return nil, fmt.Errorf("execute request: %w", err)
+	}
+
+	return &resp, nil
+}
+
+// ListByNextLink retrieves a list of items by a next link.
+// It doesn't require specifying filters and resources manually.
+func (c *Client) ListByNextLink(ctx context.Context, nextLink string) (*ListResponse, error) {
+	req, err := c.newRequest(ctx, http.MethodGet, nextLink, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create new request: %w", err)
+	}
+
+	var resp ListResponse
+	if err := c.do(req, &resp); err != nil {
+		return nil, fmt.Errorf("execute request: %w", err)
 	}
 
 	return &resp, nil

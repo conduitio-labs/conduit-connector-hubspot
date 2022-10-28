@@ -88,7 +88,7 @@ func (c *Client) Delete(ctx context.Context, resource, itemID string) error {
 	}
 
 	if err := c.do(req, nil); err != nil {
-		return fmt.Errorf("do request: %w", err)
+		return fmt.Errorf("execute request: %w", err)
 	}
 
 	return nil

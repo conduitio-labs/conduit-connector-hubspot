@@ -141,7 +141,7 @@ func (c *Client) Update(ctx context.Context, resource, itemID string, item map[s
 	}
 
 	if err := c.do(req, nil); err != nil {
-		return fmt.Errorf("do request: %w", err)
+		return fmt.Errorf("execute request: %w", err)
 	}
 
 	return nil

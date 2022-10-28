@@ -20,9 +20,8 @@ import (
 	"strconv"
 	"time"
 
-	sdk "github.com/conduitio/conduit-connector-sdk"
-
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
+	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
 // CDC is an implementation of a CDC iterator for the HubSpot API.
@@ -95,6 +94,11 @@ func (c *CDC) Next(ctx context.Context) (sdk.Record, error) {
 	}
 }
 
+// Stop stops the iterator.
+func (c *CDC) Stop() {
+	c.stopC <- struct{}{}
+}
+
 // poll polls items at the specified time intervals.
 func (c *CDC) poll(ctx context.Context) {
 	ticker := time.NewTicker(c.pollingPeriod)
@@ -150,21 +154,22 @@ func (c *CDC) fetchTimestampBasedItems(
 	listOpts := &hubspot.ListOptions{
 		Limit:        c.bufferSize,
 		UpdatedAfter: &updatedAfter,
-		Sort:         hubspot.UpdatedAtListSortKey,
+		Sort:         resource.UpdatedAtFieldName,
 		Archived:     true,
 	}
 
-	listResp, err := c.hubspotClient.List(ctx, c.resource, listOpts)
+	listResponse, err := c.hubspotClient.List(ctx, c.resource, listOpts)
 	if err != nil {
 		return fmt.Errorf("list items: %w", err)
 	}
 
-	for _, item := range listResp.Results {
+	for _, item := range listResponse.Results {
 		err = c.routeItem(item,
 			resource.CreatedAtFieldName,
 			resource.UpdatedAtFieldName,
 			resource.DeletedAtFieldName,
-			updatedAfter)
+			updatedAfter,
+		)
 		if err != nil {
 			return fmt.Errorf("route timestamp based item: %w", err)
 		}
@@ -179,12 +184,12 @@ func (c *CDC) fetchSearchBasedItems(
 	resource hubspot.SearchResource,
 	updatedAfter time.Time,
 ) error {
-	listResp, err := c.hubspotClient.SearchByUpdatedAfter(ctx, c.resource, updatedAfter, c.bufferSize)
+	listResponse, err := c.hubspotClient.SearchByUpdatedAfter(ctx, c.resource, updatedAfter, c.bufferSize)
 	if err != nil {
 		return fmt.Errorf("list items: %w", err)
 	}
 
-	for _, item := range listResp.Results {
+	for _, item := range listResponse.Results {
 		err = c.routeItem(item, resource.CreatedAtFieldName, resource.UpdatedAtFieldName, "", updatedAfter)
 		if err != nil {
 			return fmt.Errorf("route search based item: %w", err)
@@ -236,12 +241,10 @@ func (c *CDC) routeItem(
 		return fmt.Errorf("marshal sdk position: %w", err)
 	}
 
-	c.records <- c.getRecord(item,
-		itemCreatedAt,
-		itemDeletedAt,
-		updatedAfter,
-		sdkPosition,
-		metadata)
+	c.records <- c.getRecord(
+		item, itemCreatedAt, itemDeletedAt, updatedAfter,
+		sdkPosition, metadata,
+	)
 
 	return nil
 }
@@ -296,9 +299,4 @@ func (c *CDC) getItemPosition(item map[string]any, timestamp time.Time) (*Positi
 		ItemID:    itemID,
 		Timestamp: &timestamp,
 	}, nil
-}
-
-// Stop stops the iterator.
-func (c *CDC) Stop() {
-	c.stopC <- struct{}{}
 }

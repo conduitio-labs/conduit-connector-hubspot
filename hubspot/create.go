@@ -90,7 +90,7 @@ func (c *Client) Create(ctx context.Context, resource string, item map[string]an
 	}
 
 	if err := c.do(req, nil); err != nil {
-		return fmt.Errorf("do request: %w", err)
+		return fmt.Errorf("execute request: %w", err)
 	}
 
 	return nil
