@@ -72,3 +72,20 @@ Here's an example of a CDC position:
 ### Known limitations
 
 - Not all resources support all CDC operations. You can check the available resources and operations they support out [here](docs/resources.md).
+
+## Destination
+
+The HubSpot Destination takes a `record.Record` and sends its payload to HubSpot without any transformations. The destination is designed to handle different payloads. You can check the available resources and operations they support out [here](/docs/resources.md).
+
+### Configuration options
+
+| name            | description                                                                                                                            | required | default |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
+| `accessToken`   | The private app access token for accessing the HubSpot API.                                                                            | **true** |         |
+| `resource`      | The HubSpot resource that the connector will work with.<br />You can find a list of the available resources [here](docs/resources.md). | **true** |         |
+| `maxRetries`    | The number of HubSpot API request retries attempts that will be tried before giving up if a request fails.                             | false    | `4`     |
+
+### Known limitations
+
+- To perform the update or delete operations the destination requires the `record.Key` to be set.
+- If you want to use the destination to insert records from a source containing records that were previously taken by the HubSpot source, you may need to exclude some read-only fields from their payload. When trying to insert read-only fields you'll see an appropriate error message in the logs containing the names of the read-only fields.
