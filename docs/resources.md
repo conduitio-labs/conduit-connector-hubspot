@@ -1,4 +1,4 @@
-Here you can find a list of the available HubSpot resources and operations they support.
+Here you can find a list of the available HubSpot resources and operations they can track (source) and perform (destination).
 
 | resource                                                                                      | source operations                        | destination operations       |
 | --------------------------------------------------------------------------------------------- | ---------------------------------------- | ---------------------------- |
