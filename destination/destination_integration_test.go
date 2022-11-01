@@ -81,7 +81,7 @@ func TestDestination_Write_successCreate(t *testing.T) {
 		itemID, ok := listResp.Results[0]["id"].(string)
 		is.True(ok)
 
-		err = hubspotClient.Delete(ctx, testResource, itemID)
+		err = hubspotClient.Delete(context.Background(), testResource, itemID)
 		is.NoErr(err)
 	})
 
@@ -138,7 +138,7 @@ func TestDestination_Write_successCreateUpdate(t *testing.T) {
 	is.True(ok)
 
 	t.Cleanup(func() {
-		err = hubspotClient.Delete(ctx, testResource, itemID)
+		err = hubspotClient.Delete(context.Background(), testResource, itemID)
 		is.NoErr(err)
 	})
 
@@ -215,7 +215,7 @@ func TestDestination_Write_successCreateDelete(t *testing.T) {
 	is.True(ok)
 
 	t.Cleanup(func() {
-		err = hubspotClient.Delete(ctx, testResource, itemID)
+		err = hubspotClient.Delete(context.Background(), testResource, itemID)
 		is.NoErr(err)
 	})
 
