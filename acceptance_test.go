@@ -60,8 +60,8 @@ func (d driver) GenerateRecord(t *testing.T, operation sdk.Operation) sdk.Record
 		Operation: operation,
 		Payload: sdk.Change{
 			After: sdk.StructuredData{
-				"fullName": gofakeit.Name(),
-				"email":    gofakeit.Email(),
+				testFullNameFieldName: gofakeit.Name(),
+				testEmailFieldName:    gofakeit.Email(),
 			},
 		},
 	}
@@ -166,6 +166,7 @@ func TestAcceptance(t *testing.T) {
 				SourceConfig:      cfg,
 				DestinationConfig: cfg,
 				GoleakOptions: []goleak.Option{
+					// these leaks mainly come from the go-retryablehttp
 					goleak.IgnoreTopFunction("internal/poll.runtime_pollWait"),
 					goleak.IgnoreTopFunction("net/http.(*persistConn).writeLoop"),
 				},
