@@ -105,7 +105,7 @@ func (d driver) ReadFromDestination(t *testing.T, records []sdk.Record) []sdk.Re
 func (d driver) WriteToSource(t *testing.T, records []sdk.Record) []sdk.Record {
 	t.Helper()
 
-	_ = d.ConfigurableAcceptanceTestDriver.WriteToSource(t, records)
+	newRecords := d.ConfigurableAcceptanceTestDriver.WriteToSource(t, records)
 
 	listResp, err := d.hubspotClient.List(context.Background(), testResource, nil)
 	if err != nil {
@@ -125,8 +125,8 @@ func (d driver) WriteToSource(t *testing.T, records []sdk.Record) []sdk.Record {
 	}
 
 	// fill records payload with the newly created HubSpot items properties
-	for i := range records {
-		recordPayloadAfter, ok := records[i].Payload.After.(sdk.StructuredData)
+	for i := range newRecords {
+		recordPayloadAfter, ok := newRecords[i].Payload.After.(sdk.StructuredData)
 		if !ok {
 			t.Errorf("record's payload after is not structure")
 		}
@@ -141,10 +141,10 @@ func (d driver) WriteToSource(t *testing.T, records []sdk.Record) []sdk.Record {
 			t.Errorf("can't find a list resp result by email")
 		}
 
-		records[i].Payload.After = sdk.StructuredData(listRespResult)
+		newRecords[i].Payload.After = sdk.StructuredData(listRespResult)
 	}
 
-	return records
+	return newRecords
 }
 
 //nolint:paralleltest // we don't need the paralleltest here
