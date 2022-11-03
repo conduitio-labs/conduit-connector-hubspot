@@ -26,36 +26,39 @@ import (
 
 // CDC is an implementation of a CDC iterator for the HubSpot API.
 type CDC struct {
-	hubspotClient *hubspot.Client
-	resource      string
-	bufferSize    int
-	pollingPeriod time.Duration
-	records       chan sdk.Record
-	errC          chan error
-	stopC         chan struct{}
-	position      *Position
+	hubspotClient   *hubspot.Client
+	resource        string
+	bufferSize      int
+	pollingPeriod   time.Duration
+	records         chan sdk.Record
+	errC            chan error
+	stopC           chan struct{}
+	position        *Position
+	extraProperties []string
 }
 
 // CDCParams is an incoming params for the [NewCDC] function.
 type CDCParams struct {
-	HubSpotClient *hubspot.Client
-	Resource      string
-	BufferSize    int
-	PollingPeriod time.Duration
-	Position      *Position
+	HubSpotClient   *hubspot.Client
+	Resource        string
+	BufferSize      int
+	PollingPeriod   time.Duration
+	Position        *Position
+	ExtraProperties []string
 }
 
 // NewCDC creates a new instance of the [CDC].
 func NewCDC(ctx context.Context, params CDCParams) (*CDC, error) {
 	cdc := &CDC{
-		hubspotClient: params.HubSpotClient,
-		resource:      params.Resource,
-		bufferSize:    params.BufferSize,
-		pollingPeriod: params.PollingPeriod,
-		records:       make(chan sdk.Record, params.BufferSize),
-		errC:          make(chan error, 1),
-		stopC:         make(chan struct{}, 1),
-		position:      params.Position,
+		hubspotClient:   params.HubSpotClient,
+		resource:        params.Resource,
+		bufferSize:      params.BufferSize,
+		pollingPeriod:   params.PollingPeriod,
+		records:         make(chan sdk.Record, params.BufferSize),
+		errC:            make(chan error, 1),
+		stopC:           make(chan struct{}, 1),
+		position:        params.Position,
+		extraProperties: params.ExtraProperties,
 	}
 
 	if cdc.position == nil || cdc.position.Timestamp == nil {
@@ -184,7 +187,9 @@ func (c *CDC) fetchSearchBasedItems(
 	resource hubspot.SearchResource,
 	updatedAfter time.Time,
 ) error {
-	listResponse, err := c.hubspotClient.SearchByUpdatedAfter(ctx, c.resource, updatedAfter, c.bufferSize)
+	listResponse, err := c.hubspotClient.SearchByUpdatedAfter(
+		ctx, c.resource, updatedAfter, c.bufferSize, c.extraProperties,
+	)
 	if err != nil {
 		return fmt.Errorf("list items: %w", err)
 	}

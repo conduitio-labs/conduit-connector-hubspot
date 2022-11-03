@@ -28,28 +28,31 @@ type Combined struct {
 	snapshot *Snapshot
 	cdc      *CDC
 
-	hubspotClient *hubspot.Client
-	resource      string
-	bufferSize    int
-	pollingPeriod time.Duration
+	hubspotClient   *hubspot.Client
+	resource        string
+	bufferSize      int
+	pollingPeriod   time.Duration
+	extraProperties []string
 }
 
 // CombinedParams is an incoming params for the NewCombined function.
 type CombinedParams struct {
-	HubSpotClient *hubspot.Client
-	Resource      string
-	BufferSize    int
-	PollingPeriod time.Duration
-	Position      *Position
+	HubSpotClient   *hubspot.Client
+	Resource        string
+	BufferSize      int
+	PollingPeriod   time.Duration
+	Position        *Position
+	ExtraProperties []string
 }
 
 // NewCombined creates new instance of the Combined.
 func NewCombined(ctx context.Context, params CombinedParams) (*Combined, error) {
 	combined := &Combined{
-		hubspotClient: params.HubSpotClient,
-		resource:      params.Resource,
-		bufferSize:    params.BufferSize,
-		pollingPeriod: params.PollingPeriod,
+		hubspotClient:   params.HubSpotClient,
+		resource:        params.Resource,
+		bufferSize:      params.BufferSize,
+		pollingPeriod:   params.PollingPeriod,
+		extraProperties: params.ExtraProperties,
 	}
 
 	var err error
@@ -129,6 +132,7 @@ func (c *Combined) switchToCDCIterator(ctx context.Context) error {
 			Mode:      CDCPositionMode,
 			Timestamp: &c.snapshot.initialTimestamp,
 		},
+		ExtraProperties: c.extraProperties,
 	})
 	if err != nil {
 		return fmt.Errorf("init cdc iterator: %w", err)

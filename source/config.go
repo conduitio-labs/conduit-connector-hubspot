@@ -17,6 +17,7 @@ package source
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/conduitio-labs/conduit-connector-hubspot/config"
@@ -28,6 +29,8 @@ const (
 	ConfigKeyPollingPeriod = "pollingPeriod"
 	// ConfigKeyBufferSize is a config name for a buffer size.
 	ConfigKeyBufferSize = "bufferSize"
+	// ConfigKeyExtraProperties is a config name for a extra properties.
+	ConfigKeyExtraProperties = "extraProperties"
 )
 
 const (
@@ -47,6 +50,11 @@ type Config struct {
 	// BufferSize is the buffer size for consumed items.
 	// It will also be used as a limit when retrieving items from the HubSpot API.
 	BufferSize int `key:"bufferSize" validate:"gte=1,lte=100"`
+	// ExtraProperties holds a list of HubSpot resource properties to include
+	// in addition to the default. If any of the specified properties are not present
+	// on the requested HubSpot resource, they will be ignored.
+	// Only CRM resources support this.
+	ExtraProperties []string `key:"extraProperties"`
 }
 
 // ParseConfig seeks to parse a provided map[string]string into a Config struct.
@@ -82,6 +90,13 @@ func ParseConfig(cfg map[string]string) (Config, error) {
 		}
 
 		sourceConfig.BufferSize = bufferSize
+	}
+
+	// parse extraProperties if it's not empty.
+	if extraPropertiesStr := cfg[ConfigKeyExtraProperties]; extraPropertiesStr != "" {
+		sourceConfig.ExtraProperties = strings.FieldsFunc(extraPropertiesStr, func(r rune) bool {
+			return r == ',' || r == ' '
+		})
 	}
 
 	if err := validator.ValidateStruct(sourceConfig); err != nil {
