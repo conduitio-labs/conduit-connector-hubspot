@@ -76,6 +76,13 @@ func (s *Source) Parameters() map[string]sdk.Parameter {
 			Description: "The buffer size for consumed items. " +
 				"It will also be used as a limit when retrieving items from the HubSpot API.",
 		},
+		ConfigKeyExtraProperties: {
+			Default:  "",
+			Required: false,
+			Description: "The list of HubSpot resource properties to include in addition to the default. " +
+				"If any of the specified properties are not present on the requested HubSpot resource, " +
+				"they will be ignored. Only CRM resources support this.",
+		},
 	}
 }
 
@@ -103,11 +110,12 @@ func (s *Source) Open(ctx context.Context, sdkPosition sdk.Position) error {
 	}
 
 	s.iterator, err = iterator.NewCombined(ctx, iterator.CombinedParams{
-		HubSpotClient: hubspotClient,
-		Resource:      s.config.Resource,
-		BufferSize:    s.config.BufferSize,
-		PollingPeriod: s.config.PollingPeriod,
-		Position:      position,
+		HubSpotClient:   hubspotClient,
+		Resource:        s.config.Resource,
+		BufferSize:      s.config.BufferSize,
+		PollingPeriod:   s.config.PollingPeriod,
+		Position:        position,
+		ExtraProperties: s.config.ExtraProperties,
 	})
 	if err != nil {
 		return fmt.Errorf("initialize combined iterator: %w", err)

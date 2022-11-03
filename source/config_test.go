@@ -97,6 +97,48 @@ func TestParseConfig(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "success_extra_properties",
+			args: args{
+				cfg: map[string]string{
+					config.KeyAccessToken:    "access_token",
+					config.KeyResource:       "crm.contacts",
+					ConfigKeyExtraProperties: "name,email",
+				},
+			},
+			want: Config{
+				Config: config.Config{
+					AccessToken: "access_token",
+					Resource:    "crm.contacts",
+					MaxRetries:  config.DefaultMaxRetries,
+				},
+				PollingPeriod:   defaultPollingPeriod,
+				BufferSize:      defaultBufferSize,
+				ExtraProperties: []string{"name", "email"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "success_extra_properties_with_redundant_spaces_and_commas",
+			args: args{
+				cfg: map[string]string{
+					config.KeyAccessToken:    "access_token",
+					config.KeyResource:       "crm.contacts",
+					ConfigKeyExtraProperties: "name,email , ,, , ,,createdAt, , updatedAt",
+				},
+			},
+			want: Config{
+				Config: config.Config{
+					AccessToken: "access_token",
+					Resource:    "crm.contacts",
+					MaxRetries:  config.DefaultMaxRetries,
+				},
+				PollingPeriod:   defaultPollingPeriod,
+				BufferSize:      defaultBufferSize,
+				ExtraProperties: []string{"name", "email", "createdAt", "updatedAt"},
+			},
+			wantErr: false,
+		},
+		{
 			name: "fail_missing_required_common_config_value",
 			args: args{
 				cfg: map[string]string{

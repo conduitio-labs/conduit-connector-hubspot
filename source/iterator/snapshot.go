@@ -26,14 +26,15 @@ import (
 
 // Snapshot is an implementation of a Snapshot iterator for the HubSpot API.
 type Snapshot struct {
-	hubspotClient *hubspot.Client
-	resource      string
-	bufferSize    int
-	pollingPeriod time.Duration
-	records       chan sdk.Record
-	errC          chan error
-	stopC         chan struct{}
-	position      *Position
+	hubspotClient   *hubspot.Client
+	resource        string
+	bufferSize      int
+	pollingPeriod   time.Duration
+	records         chan sdk.Record
+	errC            chan error
+	stopC           chan struct{}
+	position        *Position
+	extraProperties []string
 	// initialTimestamp will be used to retrieve all items
 	// that are created before this date.
 	initialTimestamp time.Time
@@ -45,11 +46,12 @@ type Snapshot struct {
 
 // SnapshotParams is an incoming params for the [NewSnapshot] function.
 type SnapshotParams struct {
-	HubSpotClient *hubspot.Client
-	Resource      string
-	BufferSize    int
-	PollingPeriod time.Duration
-	Position      *Position
+	HubSpotClient   *hubspot.Client
+	Resource        string
+	BufferSize      int
+	PollingPeriod   time.Duration
+	Position        *Position
+	ExtraProperties []string
 }
 
 // NewSnapshot creates a new instance of the [Snapshot].
@@ -63,6 +65,7 @@ func NewSnapshot(ctx context.Context, params SnapshotParams) (*Snapshot, error) 
 		errC:             make(chan error, 1),
 		stopC:            make(chan struct{}, 1),
 		position:         params.Position,
+		extraProperties:  params.ExtraProperties,
 		initialTimestamp: time.Now().UTC(),
 	}
 
@@ -237,7 +240,7 @@ func (s *Snapshot) listSearchBasedItems(ctx context.Context) (*hubspot.ListRespo
 	}
 
 	listResponse, err := s.hubspotClient.SearchByCreatedBefore(
-		ctx, s.resource, s.initialTimestamp, s.bufferSize, after,
+		ctx, s.resource, s.initialTimestamp, s.bufferSize, after, s.extraProperties,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("list search items: %w", err)
