@@ -168,6 +168,7 @@ var SearchResources = map[string]SearchResource{
 // SearchRequest is a request model for the [Search] method.
 type SearchRequest struct {
 	Limit        string                     `json:"limit,omitempty"`
+	Properties   []string                   `json:"properties,omitempty"`
 	FilterGroups []SearchRequestFilterGroup `json:"filterGroups,omitempty"`
 	Sorts        []SearchRequestSort        `json:"sorts,omitempty"`
 }
@@ -219,6 +220,7 @@ func (c *Client) SearchByUpdatedAfter(
 	resource string,
 	updatedAfter time.Time,
 	limit int,
+	properties []string,
 ) (*ListResponse, error) {
 	searchResource, ok := SearchResources[resource]
 	if !ok {
@@ -228,7 +230,8 @@ func (c *Client) SearchByUpdatedAfter(
 	}
 
 	return c.Search(ctx, resource, &SearchRequest{
-		Limit: strconv.Itoa(limit),
+		Limit:      strconv.Itoa(limit),
+		Properties: properties,
 		FilterGroups: []SearchRequestFilterGroup{
 			{
 				Filters: []SearchRequestFilterGroupFilter{
@@ -256,6 +259,7 @@ func (c *Client) SearchByCreatedBefore(
 	resource string,
 	createdBefore time.Time,
 	limit, after int,
+	properties []string,
 ) (*ListResponse, error) {
 	searchResource, ok := SearchResources[resource]
 	if !ok {
@@ -283,6 +287,7 @@ func (c *Client) SearchByCreatedBefore(
 
 	// construct request body with the created filters and sorting
 	req := &SearchRequest{
+		Properties: properties,
 		FilterGroups: []SearchRequestFilterGroup{
 			{
 				Filters: filters,
