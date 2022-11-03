@@ -364,7 +364,7 @@ func waitTestContacts(
 			return false, fmt.Errorf("context canceled: %w", ctx.Err())
 
 		case <-ticker.C:
-			listResp, err := hubspotClient.SearchByCreatedBefore(ctx, testResource, now, retryItemsLimit, 0)
+			listResp, err := hubspotClient.SearchByCreatedBefore(ctx, testResource, now, retryItemsLimit, 0, nil)
 			if err != nil {
 				return false, fmt.Errorf("search contacts: %w", err)
 			}
