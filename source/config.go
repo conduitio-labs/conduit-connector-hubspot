@@ -31,6 +31,8 @@ const (
 	ConfigKeyBufferSize = "bufferSize"
 	// ConfigKeyExtraProperties is a config name for a extra properties.
 	ConfigKeyExtraProperties = "extraProperties"
+	// ConfigKeySnapshot is a config name for a snapshot field.
+	ConfigKeySnapshot = "snapshot"
 )
 
 const (
@@ -38,6 +40,8 @@ const (
 	defaultPollingPeriod = time.Second * 5
 	// defaultBufferSize is a default BufferSize's value used if the BufferSize field is empty.
 	defaultBufferSize = 100
+	// defaultSnapshot is the default value for the snapshot field.
+	defaultSnapshot = true
 )
 
 // Config holds source-specific configurable values.
@@ -55,6 +59,9 @@ type Config struct {
 	// on the requested HubSpot resource, they will be ignored.
 	// Only CRM resources support this.
 	ExtraProperties []string `key:"extraProperties"`
+	// Snapshot determines whether or not the connector will take a snapshot
+	// of the entire collection before starting CDC mode.
+	Snapshot bool `key:"snapshot"`
 }
 
 // ParseConfig seeks to parse a provided map[string]string into a Config struct.
@@ -68,6 +75,7 @@ func ParseConfig(cfg map[string]string) (Config, error) {
 		Config:        commonConfig,
 		PollingPeriod: defaultPollingPeriod,
 		BufferSize:    defaultBufferSize,
+		Snapshot:      defaultSnapshot,
 	}
 
 	// parse pollingPeriod if it's not empty.
@@ -97,6 +105,16 @@ func ParseConfig(cfg map[string]string) (Config, error) {
 		sourceConfig.ExtraProperties = strings.FieldsFunc(extraPropertiesStr, func(r rune) bool {
 			return r == ',' || r == ' '
 		})
+	}
+
+	// parse snapshot if it's not empty
+	if snapshotStr := cfg[ConfigKeySnapshot]; snapshotStr != "" {
+		snapshot, err := strconv.ParseBool(snapshotStr)
+		if err != nil {
+			return Config{}, fmt.Errorf("parse snapshot: %w", err)
+		}
+
+		sourceConfig.Snapshot = snapshot
 	}
 
 	if err := validator.ValidateStruct(sourceConfig); err != nil {

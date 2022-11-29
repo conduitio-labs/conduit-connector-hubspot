@@ -43,6 +43,7 @@ type CombinedParams struct {
 	PollingPeriod   time.Duration
 	Position        *Position
 	ExtraProperties []string
+	Snapshot        bool
 }
 
 // NewCombined creates new instance of the Combined.
@@ -57,14 +58,28 @@ func NewCombined(ctx context.Context, params CombinedParams) (*Combined, error) 
 
 	var err error
 	switch position := params.Position; {
-	case position == nil || position.Mode == SnapshotPositionMode:
-		combined.snapshot, err = NewSnapshot(ctx, SnapshotParams(params))
+	case params.Snapshot && (position == nil || position.Mode == SnapshotPositionMode):
+		combined.snapshot, err = NewSnapshot(ctx, SnapshotParams{
+			HubSpotClient:   params.HubSpotClient,
+			Resource:        params.Resource,
+			BufferSize:      params.BufferSize,
+			PollingPeriod:   params.PollingPeriod,
+			Position:        params.Position,
+			ExtraProperties: params.ExtraProperties,
+		})
 		if err != nil {
 			return nil, fmt.Errorf("init snapshot iterator: %w", err)
 		}
 
-	case position.Mode == CDCPositionMode:
-		combined.cdc, err = NewCDC(ctx, CDCParams(params))
+	case !params.Snapshot || (position != nil && position.Mode == CDCPositionMode):
+		combined.cdc, err = NewCDC(ctx, CDCParams{
+			HubSpotClient:   params.HubSpotClient,
+			Resource:        params.Resource,
+			BufferSize:      params.BufferSize,
+			PollingPeriod:   params.PollingPeriod,
+			Position:        params.Position,
+			ExtraProperties: params.ExtraProperties,
+		})
 		if err != nil {
 			return nil, fmt.Errorf("init cdc iterator: %w", err)
 		}

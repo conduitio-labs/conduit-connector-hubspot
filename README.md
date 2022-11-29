@@ -26,6 +26,8 @@ The HubSpot Source Connector uses a private app access token to connect to a Hub
 
 When the connector first starts, snapshot mode is enabled. The connector reads items of a resource that you specified. It only reads items that are created before the connector starts to run, batching them by `bufferSize`. Each new batch is processed every `pollingPeriod` duration. Once all items in that initial snapshot are read the connector switches into CDC mode.
 
+This behavior is enabled by default, but can be turned off by adding `"snapshot": false` to the Source configuration.
+
 ### Change Data Capture
 
 When a snapshot is captured the connector starts to listen to data changes. It can track creates, updates, and deletes that occur after the connector is started. But please note that not all resources support all operations. You can check the available resources and operations they support out [here](docs/resources.md).
@@ -69,6 +71,7 @@ Here's an example of a CDC position:
 | `pollingPeriod`   | The duration that defines a period of polling new items.                                                                                                                                                                                                                                                  | false    | `5s`    |
 | `bufferSize`      | The buffer size for consumed items.<br />It will also be used as a limit when retrieving items from the HubSpot API.                                                                                                                                                                                      | false    | `100`   |
 | `extraProperties` | The list of HubSpot resource properties to include in addition to the default.<br />If any of the specified properties are not present on the requested HubSpot resource, they will be ignored.<br />Only CRM resources support this.<br />The format of this field is the following: `prop1,prop2,prop3` | false    |         |
+| `snapshot`        | The field determines whether or not the connector will take a snapshot of the entire collection before starting CDC mode.                                                                                                                                                                                 | false    | `true`  |
 
 ### Known limitations
 

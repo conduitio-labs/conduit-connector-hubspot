@@ -83,6 +83,12 @@ func (s *Source) Parameters() map[string]sdk.Parameter {
 				"If any of the specified properties are not present on the requested HubSpot resource, " +
 				"they will be ignored. Only CRM resources support this.",
 		},
+		ConfigKeySnapshot: {
+			Default:  "true",
+			Required: false,
+			Description: "The field determines whether or not the connector " +
+				"will take a snapshot of the entire collection before starting CDC mode.",
+		},
 	}
 }
 
@@ -116,6 +122,7 @@ func (s *Source) Open(ctx context.Context, sdkPosition sdk.Position) error {
 		PollingPeriod:   s.config.PollingPeriod,
 		Position:        position,
 		ExtraProperties: s.config.ExtraProperties,
+		Snapshot:        s.config.Snapshot,
 	})
 	if err != nil {
 		return fmt.Errorf("initialize combined iterator: %w", err)
