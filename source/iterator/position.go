@@ -41,7 +41,7 @@ type Position struct {
 	ItemID int `json:"itemId,omitempty"`
 	// InitialTimestamp is an initial timestamp of a snapshot.
 	InitialTimestamp *time.Time `json:"initialTimestamp,omitempty"`
-	// Timestamp is used if the position's mode is [CDCPositionMode].
+	// Timestamp is used if the position's mode is [CDCPositionMode], or for [SnapshotPositionMode] if it was interrupted.
 	Timestamp *time.Time `json:"timestamp,omitempty"`
 }
 
