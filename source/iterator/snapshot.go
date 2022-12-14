@@ -218,6 +218,7 @@ func (s *Snapshot) listTimestampBasedItems(
 	listOpts := &hubspot.ListOptions{
 		Limit:         s.bufferSize,
 		CreatedBefore: &s.initialTimestamp,
+		CreatedAfter:  s.position.Timestamp,
 		Sort:          resource.CreatedAtFieldName,
 	}
 
