@@ -17,7 +17,6 @@ package iterator
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
@@ -288,15 +287,10 @@ func (c *CDC) getRecord(item hubspot.ListResponseResult,
 
 // getItemPosition grabs an id field from a provided item and constructs a [Position] based on its value.
 func (c *CDC) getItemPosition(item map[string]any, timestamp time.Time) (*Position, error) {
-	itemIDStr, ok := item[hubspot.ResultsFieldID].(string)
+	itemID, ok := item[hubspot.ResultsFieldID].(string)
 	if !ok {
 		// this shouldn't happen cause HubSpot API v3 returns items with string identifiers.
 		return nil, ErrItemIDIsNotAString
-	}
-
-	itemID, err := strconv.Atoi(itemIDStr)
-	if err != nil {
-		return nil, fmt.Errorf("convert item's id string to integer: %w", err)
 	}
 
 	return &Position{
