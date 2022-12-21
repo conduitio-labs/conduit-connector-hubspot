@@ -3,12 +3,14 @@ module github.com/conduitio-labs/conduit-connector-hubspot
 go 1.18
 
 require (
+	github.com/brianvoe/gofakeit/v6 v6.19.0
 	github.com/conduitio/conduit-connector-sdk v0.3.0
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/golang/mock v1.6.0
 	github.com/google/go-querystring v1.1.0
 	github.com/hashicorp/go-retryablehttp v0.7.1
 	github.com/matryer/is v1.4.0
+	go.uber.org/goleak v1.2.0
 	go.uber.org/multierr v1.8.0
 )
 
@@ -31,7 +33,6 @@ require (
 	github.com/rs/zerolog v1.28.0 // indirect
 	go.buf.build/grpc/go/conduitio/conduit-connector-protocol v1.4.3 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
-	go.uber.org/goleak v1.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20220926161630-eccd6366d1be // indirect
 	golang.org/x/net v0.0.0-20220926192436-02166a98028e // indirect
 	golang.org/x/sys v0.0.0-20220926163933-8cfa568d3c25 // indirect

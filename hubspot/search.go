@@ -23,14 +23,16 @@ import (
 )
 
 const (
-	// gteOperator is a greater then or equal to operator for search endpoints.
-	gteOperator = "GTE"
-	// lteOperator is a less then or equal to operator for search endpoints.
-	lteOperator = "LTE"
+	// GTEOperator is a greater then operator for search endpoints.
+	GTEOperator = "GTE"
+	// EQOperator is an equal operator for search endpoints.
+	EQOperator = "EQ"
+	// LTEOperator is a less then or equal to operator for search endpoints.
+	LTEOperator = "LTE"
 )
 
-// ascSortDirection stands for ascending sorting order.
-const ascSortDirection = "ASCENDING"
+// ASCSortDirection stands for ascending sorting order.
+const ASCSortDirection = "ASCENDING"
 
 // SearchResource holds a path, createdAt, and updatedAt field names.
 type SearchResource struct {
@@ -235,7 +237,7 @@ func (c *Client) SearchByUpdatedAfter(
 				Filters: []SearchRequestFilterGroupFilter{
 					{
 						PropertyName: searchResource.UpdatedAtSortName,
-						Operator:     gteOperator,
+						Operator:     GTEOperator,
 						Value:        strconv.Itoa(int(updatedAfter.UnixMilli())),
 					},
 				},
@@ -244,7 +246,7 @@ func (c *Client) SearchByUpdatedAfter(
 		Sorts: []SearchRequestSort{
 			{
 				PropertyName: searchResource.UpdatedAtSortName,
-				Direction:    ascSortDirection,
+				Direction:    ASCSortDirection,
 			},
 		},
 	})
@@ -270,7 +272,7 @@ func (c *Client) SearchByCreatedBefore(
 	filters := []SearchRequestFilterGroupFilter{
 		{
 			PropertyName: searchResource.CreatedAtSortName,
-			Operator:     lteOperator,
+			Operator:     LTEOperator,
 			Value:        strconv.Itoa(int(createdBefore.UnixMilli())),
 		},
 	}
@@ -278,7 +280,7 @@ func (c *Client) SearchByCreatedBefore(
 	if after != 0 {
 		filters = append(filters, SearchRequestFilterGroupFilter{
 			PropertyName: searchResource.ObjectIDFilterName,
-			Operator:     gteOperator,
+			Operator:     GTEOperator,
 			Value:        strconv.Itoa(after),
 		})
 	}
@@ -294,7 +296,7 @@ func (c *Client) SearchByCreatedBefore(
 		Sorts: []SearchRequestSort{
 			{
 				PropertyName: searchResource.CreatedAtSortName,
-				Direction:    ascSortDirection,
+				Direction:    ASCSortDirection,
 			},
 		},
 	}
