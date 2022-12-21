@@ -237,7 +237,13 @@ func (s *Snapshot) listSearchBasedItems(ctx context.Context) (*hubspot.ListRespo
 	if s.position != nil {
 		// add one here in order to skip
 		// this particular item and start from the next one.
-		after = s.position.ItemID + 1
+		// HubSpot uses integer item ids within strings, so this should never fail.
+		itemIDInt, err := strconv.Atoi(s.position.ItemID)
+		if err != nil {
+			return nil, fmt.Errorf("convert position item id into int: %w", err)
+		}
+
+		after = itemIDInt + 1
 	}
 
 	listResponse, err := s.hubspotClient.SearchByCreatedBefore(
@@ -252,18 +258,14 @@ func (s *Snapshot) listSearchBasedItems(ctx context.Context) (*hubspot.ListRespo
 
 // getItemPosition grabs an id field from a provided item and constructs a [Position] based on its value.
 func (s *Snapshot) getItemPosition(item map[string]any, timestamp time.Time) (*Position, error) {
-	itemIDStr, ok := item[hubspot.ResultsFieldID].(string)
+	itemID, ok := item[hubspot.ResultsFieldID].(string)
 	if !ok {
 		// this shouldn't happen cause HubSpot API v3 returns items with string identifiers.
 		return nil, ErrItemIDIsNotAString
 	}
 
-	itemID, err := strconv.Atoi(itemIDStr)
-	if err != nil {
-		return nil, fmt.Errorf("convert item's id string to integer: %w", err)
-	}
-
 	return &Position{
+		Mode:      SnapshotPositionMode,
 		ItemID:    itemID,
 		Timestamp: &timestamp,
 	}, nil
