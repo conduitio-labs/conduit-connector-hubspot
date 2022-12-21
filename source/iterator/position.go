@@ -38,7 +38,7 @@ const (
 type Position struct {
 	Mode PositionMode `json:"mode"`
 	// ItemID is used if the position's mode is [SnapshotPositionMode].
-	ItemID int `json:"itemId,omitempty"`
+	ItemID string `json:"itemId,omitempty"`
 	// InitialTimestamp is an initial timestamp of a snapshot.
 	InitialTimestamp *time.Time `json:"initialTimestamp,omitempty"`
 	// Timestamp is used if the position's mode is [CDCPositionMode], or for [SnapshotPositionMode] if it was interrupted.
