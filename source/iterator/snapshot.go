@@ -234,7 +234,7 @@ func (s *Snapshot) listTimestampBasedItems(
 // The createdBefore parameter is equal to the [Snapshot]'s initialTimestamp value.
 func (s *Snapshot) listSearchBasedItems(ctx context.Context) (*hubspot.ListResponse, error) {
 	var after int
-	if s.position != nil {
+	if s.position != nil && s.position.ItemID != "" {
 		// add one here in order to skip
 		// this particular item and start from the next one.
 		// HubSpot uses integer item ids within strings, so this should never fail.
