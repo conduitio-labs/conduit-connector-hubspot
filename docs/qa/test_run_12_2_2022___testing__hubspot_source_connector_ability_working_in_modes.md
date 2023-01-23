@@ -1,10 +1,16 @@
+**Test Run 12/2/2022 - Testing HubSpot source connector - ability working in modes**
+
+**branch:** https://github.com/conduitio-labs/conduit-connector-hubspot/tree/destination
+
+**commit** 29660db695db1ff5c9fe883a99b55661609ee187
+
 | ID       | Title                                                                                                                                                                                                                                                      | Status | Comment |
 | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------- |
 | T3206805 | \------- snapshot config                                                                                                                                                                                                                                   | Passed |         |
 | T3206806 | Check that the "snapshot" key isn't necessary and the user can create the HubSpot source connector without (or an empty) this key (By default is true -> data that was added before starting the pipeline will be transferred)                             | Passed |         |
 | T3206807 | The user can't create the HubSpot source connector with an invalid value in the "snapshot" key (for example enter any text or digits, except for valid values) -> the system returns an error                                                              | Passed |         |
 | T3206808 | The user can create the HubSpot source connector with a valid value in the "snapshot" key ("1", "t", "T", "true", "TRUE", "True") -> data that was added before starting the pipeline will be transferred                                                  | Passed |         |
-| T3206809 | Create the HubSpot source with "snapshot":"false" ("also 0", "f", "F", "false", "FALSE", "False")-> data that was added before starting the pipeline will not be transferred (if add data during the pause, data will be transferred after restarting)     | Passed |         |
+| T3206809 | Create the HubSpot source with "snapshot":"false" (also "0", "f", "F", "false", "FALSE", "False")-> data that was added before starting the pipeline will not be transferred (if add data during the pause, data will be transferred after restarting)     | Passed |         |
 | T3206797 | The data from the HubSpot source connector is transferred to the Materialize Destination connector                                                                                                                                                         | Passed |         |
 | T3206799 | The data from the HubSpot source connector is transferred to the NATS Pub/Sub Destination connector                                                                                                                                                        | Passed |         |
 | T3206800 | The data from the HubSpot source connector is transferred to the Vitess Destination connector                                                                                                                                                              | Passed |         |
