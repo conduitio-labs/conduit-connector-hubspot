@@ -2,7 +2,7 @@ module github.com/conduitio-labs/conduit-connector-hubspot
 
 go 1.18
 
-require github.com/conduitio/conduit-connector-sdk v0.7.0
+require github.com/conduitio/conduit-connector-sdk v0.7.1
 
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
