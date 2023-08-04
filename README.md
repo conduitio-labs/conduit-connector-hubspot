@@ -6,7 +6,7 @@ The [HubSpot](https://hubspot.com/) connector is one of Conduit plugins. It prov
 
 ### Prerequisites
 
-- [Go](https://go.dev/) v1.18
+- [Go](https://go.dev/) v1.20
 - [HubSpot](https://www.hubspot.com/) account and a [private app](https://developers.hubspot.com/docs/api/private-apps)
 - (optional) [golangci-lint](https://github.com/golangci/golangci-lint) v1.49.0
 

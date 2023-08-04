@@ -58,7 +58,8 @@ func TestDestination_Write_successCreate(t *testing.T) {
 	is.NoErr(err)
 
 	// create a test sdk.Record
-	testCreateRecord, testCreateRecordProperties := createTestCreateRecord()
+	trm := newTestRecordManager(t)
+	testCreateRecord, testCreateRecordProperties := trm.CreateTestCreateRecord()
 
 	// write the test record and check if the returned err is nil and n is equal to one
 	n, err := destination.Write(ctx, []sdk.Record{testCreateRecord})
@@ -76,14 +77,6 @@ func TestDestination_Write_successCreate(t *testing.T) {
 
 	// check that there's exactly one item in HubSpot
 	is.Equal(len(listResp.Results), 1)
-
-	t.Cleanup(func() {
-		itemID, ok := listResp.Results[0]["id"].(string)
-		is.True(ok)
-
-		err = hubspotClient.Delete(context.Background(), testResource, itemID)
-		is.NoErr(err)
-	})
 
 	// check that the item's properties are equal to the test record properties
 	actualProperties, ok := listResp.Results[0]["properties"].(map[string]any)
@@ -115,7 +108,8 @@ func TestDestination_Write_successCreateUpdate(t *testing.T) {
 	is.NoErr(err)
 
 	// create a test sdk.Record
-	testCreateRecord, testCreateRecordProperties := createTestCreateRecord()
+	trm := newTestRecordManager(t)
+	testCreateRecord, testCreateRecordProperties := trm.CreateTestCreateRecord()
 
 	// write the test record and check if the returned err is nil and n is equal to one
 	n, err := destination.Write(ctx, []sdk.Record{testCreateRecord})
@@ -137,11 +131,6 @@ func TestDestination_Write_successCreateUpdate(t *testing.T) {
 	itemID, ok := listResp.Results[0]["id"].(string)
 	is.True(ok)
 
-	t.Cleanup(func() {
-		err = hubspotClient.Delete(context.Background(), testResource, itemID)
-		is.NoErr(err)
-	})
-
 	// check that the item's properties are equal to the test record properties
 	actualProperties, ok := listResp.Results[0]["properties"].(map[string]any)
 	is.True(ok)
@@ -149,7 +138,7 @@ func TestDestination_Write_successCreateUpdate(t *testing.T) {
 	is.Equal(actualProperties["lastname"], testCreateRecordProperties["lastname"])
 
 	// create a test record with update operation
-	testUpdateRecord, testUpdateRecordProperties := createTestUpdateRecord(itemID)
+	testUpdateRecord, testUpdateRecordProperties := trm.CreateTestUpdateRecord(itemID)
 
 	n, err = destination.Write(ctx, []sdk.Record{testUpdateRecord})
 	is.NoErr(err)
@@ -192,7 +181,8 @@ func TestDestination_Write_successCreateDelete(t *testing.T) {
 	is.NoErr(err)
 
 	// create a test sdk.Record
-	testCreateRecord, testCreateRecordProperties := createTestCreateRecord()
+	trm := newTestRecordManager(t)
+	testCreateRecord, testCreateRecordProperties := trm.CreateTestCreateRecord()
 
 	// write the test record and check if the returned err is nil and n is equal to one
 	n, err := destination.Write(ctx, []sdk.Record{testCreateRecord})
@@ -226,7 +216,7 @@ func TestDestination_Write_successCreateDelete(t *testing.T) {
 	is.Equal(actualProperties["lastname"], testCreateRecordProperties["lastname"])
 
 	// create a test record with delete operation
-	testDeleteRecord := createTestDeleteRecord(itemID)
+	testDeleteRecord := trm.CreateTestDeleteRecord(itemID)
 
 	n, err = destination.Write(ctx, []sdk.Record{testDeleteRecord})
 	is.NoErr(err)
@@ -261,7 +251,8 @@ func TestDestination_Write_failInvalidToken(t *testing.T) {
 	err = destination.Open(ctx)
 	is.NoErr(err)
 
-	testCreateRecord, _ := createTestCreateRecord()
+	trm := newTestRecordManager(t)
+	testCreateRecord, _ := trm.CreateTestCreateRecord()
 
 	// we expect to get a 401 error because the access token we provided is invalid
 	n, err := destination.Write(ctx, []sdk.Record{testCreateRecord})
@@ -290,8 +281,21 @@ func prepareConfig(t *testing.T, accessToken string) map[string]string {
 	}
 }
 
-// createTestRecord creates a test record with [sdk.OperationCreate].
-func createTestCreateRecord() (sdk.Record, map[string]any) {
+type testRecordManager struct {
+	testRecords []map[string]any
+}
+
+func newTestRecordManager(t *testing.T) *testRecordManager {
+	t.Helper()
+	trm := &testRecordManager{}
+	t.Cleanup(func() {
+		trm.Cleanup(t)
+	})
+	return trm
+}
+
+// CreateTestRecord creates a test record with [sdk.OperationCreate].
+func (trm *testRecordManager) CreateTestCreateRecord() (sdk.Record, map[string]any) {
 	var (
 		id         = gofakeit.Int32()
 		properties = map[string]any{
@@ -299,6 +303,8 @@ func createTestCreateRecord() (sdk.Record, map[string]any) {
 			"lastname":  gofakeit.LastName(),
 		}
 	)
+
+	trm.testRecords = append(trm.testRecords, properties)
 
 	return sdk.Util.Source.NewRecordCreate(
 		nil, nil,
@@ -316,12 +322,14 @@ func createTestCreateRecord() (sdk.Record, map[string]any) {
 	), properties
 }
 
-// createTestUpdateRecord creates a test record with [sdk.OperationUpdate].
-func createTestUpdateRecord(id string) (sdk.Record, map[string]any) {
+// CreateTestUpdateRecord creates a test record with [sdk.OperationUpdate].
+func (trm *testRecordManager) CreateTestUpdateRecord(id string) (sdk.Record, map[string]any) {
 	properties := map[string]any{
 		"firstname": gofakeit.FirstName(),
 		"lastname":  gofakeit.LastName(),
 	}
+
+	trm.testRecords = append(trm.testRecords, properties)
 
 	return sdk.Util.Source.NewRecordUpdate(
 		nil, nil,
@@ -339,9 +347,52 @@ func createTestUpdateRecord(id string) (sdk.Record, map[string]any) {
 	), properties
 }
 
-// createTestDeleteRecord creates a test record with [sdk.OperationDelete].
-func createTestDeleteRecord(id string) sdk.Record {
+// CreateTestDeleteRecord creates a test record with [sdk.OperationDelete].
+func (trm *testRecordManager) CreateTestDeleteRecord(id string) sdk.Record {
 	return sdk.Util.Source.NewRecordDelete(
 		nil, nil, sdk.StructuredData{"id": id},
 	)
+}
+
+// Cleanup deletes all created records from hubspot.
+func (trm *testRecordManager) Cleanup(t *testing.T) {
+	t.Helper()
+	if len(trm.testRecords) == 0 {
+		return // nothing to clean up
+	}
+
+	client := hubspot.NewClient(testAccessToken, &http.Client{
+		Timeout: testHTTPClientTimeout,
+	})
+
+	is := is.New(t)
+	ctx := context.Background()
+
+	// list test resource items
+	listResp, err := client.List(ctx, testResource, nil)
+	is.NoErr(err)
+
+	for _, wantProperties := range trm.testRecords {
+	RESULT:
+		for _, r := range listResp.Results {
+			tmp, ok := r["properties"]
+			if !ok {
+				continue
+			}
+			gotProperties, ok := tmp.(map[string]any)
+			if !ok {
+				continue
+			}
+
+			// check if the record matches all properties
+			for k, wantProperty := range wantProperties {
+				if gotProperties[k] != wantProperty {
+					continue RESULT // continue with the next result
+				}
+			}
+			//nolint:forcetypeassert // all resources have an id
+			err = client.Delete(ctx, testResource, r["id"].(string))
+			is.NoErr(err)
+		}
+	}
 }

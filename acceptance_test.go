@@ -147,7 +147,6 @@ func (d driver) WriteToSource(t *testing.T, records []sdk.Record) []sdk.Record {
 	return newRecords
 }
 
-//nolint:paralleltest // we don't need the paralleltest here
 func TestAcceptance(t *testing.T) {
 	if testAccessToken == "" {
 		t.Skip("HUBSPOT_ACCESS_TOKEN env var must be set")

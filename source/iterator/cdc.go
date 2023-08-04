@@ -78,7 +78,7 @@ func NewCDC(ctx context.Context, params CDCParams) (*CDC, error) {
 }
 
 // HasNext returns a bool indicating whether the iterator has the next record to return or not.
-func (c *CDC) HasNext(ctx context.Context) (bool, error) {
+func (c *CDC) HasNext(_ context.Context) (bool, error) {
 	return len(c.records) > 0, nil
 }
 

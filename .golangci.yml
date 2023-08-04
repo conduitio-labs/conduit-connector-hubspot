@@ -13,6 +13,9 @@ linters-settings:
     ignore-tests: true
   goheader:
     template-path: '.golangci.goheader.template'
+    values:
+      regexp:
+        copyright-year: 20[2-9]\d
   lll:
     line-length: 120
 
@@ -22,7 +25,7 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - depguard
+    # - depguard
     - dogsled
     - durationcheck
     - errcheck
@@ -58,10 +61,10 @@ linters:
     - nakedret
     - nilerr
     - nilnil
-    - nlreturn
+    # - nlreturn
     - noctx
     - nolintlint
-    - paralleltest
+    # - paralleltest
     - predeclared
     - rowserrcheck
     - staticcheck

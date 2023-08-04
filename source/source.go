@@ -93,7 +93,7 @@ func (s *Source) Parameters() map[string]sdk.Parameter {
 }
 
 // Configure parses and initializes the config.
-func (s *Source) Configure(ctx context.Context, cfg map[string]string) (err error) {
+func (s *Source) Configure(_ context.Context, cfg map[string]string) (err error) {
 	s.config, err = ParseConfig(cfg)
 	if err != nil {
 		return fmt.Errorf("parse source config: %w", err)
@@ -159,7 +159,7 @@ func (s *Source) Ack(ctx context.Context, position sdk.Position) error {
 }
 
 // Teardown does nothing.
-func (s *Source) Teardown(ctx context.Context) error {
+func (s *Source) Teardown(_ context.Context) error {
 	if s.iterator != nil {
 		s.iterator.Stop()
 	}

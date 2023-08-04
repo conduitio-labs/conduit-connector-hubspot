@@ -88,7 +88,7 @@ func NewSnapshot(ctx context.Context, params SnapshotParams) (*Snapshot, error) 
 }
 
 // HasNext returns a bool indicating whether the iterator has the next record to return or not.
-func (s *Snapshot) HasNext(ctx context.Context) (bool, error) {
+func (s *Snapshot) HasNext(_ context.Context) (bool, error) {
 	return len(s.records) > 0 || s.hasMoreItems, nil
 }
 

@@ -146,6 +146,10 @@ func (w *Writer) structurizeData(data sdk.Data) (sdk.StructuredData, error) {
 		return nil, nil
 	}
 
+	if sd, ok := data.(sdk.StructuredData); ok {
+		return sd, nil
+	}
+
 	structuredData := make(sdk.StructuredData)
 	if err := json.Unmarshal(data.Bytes(), &structuredData); err != nil {
 		return nil, fmt.Errorf("unmarshal data into structured data: %w", err)
