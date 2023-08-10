@@ -16,18 +16,16 @@ package source
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"testing"
 	"time"
 
-	"github.com/brianvoe/gofakeit/v6"
 	"github.com/conduitio-labs/conduit-connector-hubspot/config"
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
+	"github.com/conduitio-labs/conduit-connector-hubspot/test"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/matryer/is"
 )
@@ -45,19 +43,17 @@ var (
 	// consts for retries.
 	maxCheckRetries   = 5
 	checkRetryTimeout = time.Second * 5
-	retryItemsLimit   = 100
 )
 
 func TestSource_Read_successSnapshot(t *testing.T) {
 	is := is.New(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// prepare a config, configure and open a new source
 	config := prepareConfig(t, "")
 
 	source := NewSource()
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	err := source.Configure(ctx, config)
 	is.NoErr(err)
@@ -67,29 +63,26 @@ func TestSource_Read_successSnapshot(t *testing.T) {
 		Timeout: testHTTPClientTimeout,
 	})
 
-	// create a test contact with a random properties
-	testContact, err := createTestContact(ctx, hubspotClient)
-	is.NoErr(err)
+	// create a test sdk.Record
+	trc := test.NewRecordCreator(t, testResource, true)
+	testContact := trc.NewTestCreateRecord()
 
 	// give HubSpot some time to process the HTTP request we sent
 	// and create the contact
-	ok, err := waitTestContacts(ctx, hubspotClient, 1)
+	err = waitTestContacts(ctx, hubspotClient, testContact)
 	is.NoErr(err)
-	is.True(ok)
 
 	// open the source
 	err = source.Open(ctx, nil)
 	is.NoErr(err)
 
 	// read a record
-	record, err := source.Read(ctx)
+	record, err := readWithRetry(ctx, source)
 	is.NoErr(err)
 
 	is.Equal(record.Operation, sdk.OperationSnapshot)
 
-	testContactID := compareTestContactWithRecord(t, is, testContact, record)
-	err = hubspotClient.Delete(ctx, testResource, testContactID)
-	is.NoErr(err)
+	compareTestContactWithRecord(is, testContact, record)
 
 	cancel()
 	err = source.Teardown(context.Background())
@@ -98,14 +91,13 @@ func TestSource_Read_successSnapshot(t *testing.T) {
 
 func TestSource_Read_successSnapshotContinue(t *testing.T) {
 	is := is.New(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// prepare a config, configure and open a new source
 	config := prepareConfig(t, "")
 
 	source := NewSource()
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	err := source.Configure(ctx, config)
 	is.NoErr(err)
@@ -116,31 +108,26 @@ func TestSource_Read_successSnapshotContinue(t *testing.T) {
 	})
 
 	// create a couple of test contacts with a random properties
-	firstTestContact, err := createTestContact(ctx, hubspotClient)
-	is.NoErr(err)
-
-	secondTestContact, err := createTestContact(ctx, hubspotClient)
-	is.NoErr(err)
+	trc := test.NewRecordCreator(t, testResource, true)
+	firstTestContact := trc.NewTestCreateRecord()
+	secondTestContact := trc.NewTestCreateRecord()
 
 	// give HubSpot some time to process the HTTP request we sent
 	// and create the contact
-	ok, err := waitTestContacts(ctx, hubspotClient, 2)
+	err = waitTestContacts(ctx, hubspotClient, firstTestContact, secondTestContact)
 	is.NoErr(err)
-	is.True(ok)
 
 	// open the source
 	err = source.Open(ctx, nil)
 	is.NoErr(err)
 
 	// read a record
-	record, err := source.Read(ctx)
+	record, err := readWithRetry(ctx, source)
 	is.NoErr(err)
 
 	is.Equal(record.Operation, sdk.OperationSnapshot)
 
-	firstTestContactID := compareTestContactWithRecord(t, is, firstTestContact, record)
-	err = hubspotClient.Delete(ctx, testResource, firstTestContactID)
-	is.NoErr(err)
+	compareTestContactWithRecord(is, firstTestContact, record)
 
 	cancel()
 	err = source.Teardown(context.Background())
@@ -153,14 +140,12 @@ func TestSource_Read_successSnapshotContinue(t *testing.T) {
 	is.NoErr(source.Open(ctx, record.Position))
 
 	// read a record
-	record, err = source.Read(ctx)
+	record, err = readWithRetry(ctx, source)
 	is.NoErr(err)
 
 	is.Equal(record.Operation, sdk.OperationSnapshot)
 
-	secondTestContactID := compareTestContactWithRecord(t, is, secondTestContact, record)
-	err = hubspotClient.Delete(ctx, testResource, secondTestContactID)
-	is.NoErr(err)
+	compareTestContactWithRecord(is, secondTestContact, record)
 
 	cancel()
 	err = source.Teardown(context.Background())
@@ -169,14 +154,13 @@ func TestSource_Read_successSnapshotContinue(t *testing.T) {
 
 func TestSource_Read_successCDC(t *testing.T) {
 	is := is.New(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// prepare a config, configure and open a new source
 	config := prepareConfig(t, "")
 
 	source := NewSource()
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	err := source.Configure(ctx, config)
 	is.NoErr(err)
@@ -187,61 +171,53 @@ func TestSource_Read_successCDC(t *testing.T) {
 	})
 
 	// create a test contact with a random properties
-	firstTestContact, err := createTestContact(ctx, hubspotClient)
-	is.NoErr(err)
+	trc := test.NewRecordCreator(t, testResource, true)
+	firstTestContact := trc.NewTestCreateRecord()
 
 	// give HubSpot some time to process the HTTP request we sent
 	// and create the contact
-	ok, err := waitTestContacts(ctx, hubspotClient, 1)
+	err = waitTestContacts(ctx, hubspotClient, firstTestContact)
 	is.NoErr(err)
-	is.True(ok)
 
 	err = source.Open(ctx, nil)
 	is.NoErr(err)
 
 	// read a record
-	record, err := source.Read(ctx)
+	record, err := readWithRetry(ctx, source)
 	is.NoErr(err)
 
 	is.Equal(record.Operation, sdk.OperationSnapshot)
 
-	firstTestContactID := compareTestContactWithRecord(t, is, firstTestContact, record)
-	err = hubspotClient.Delete(ctx, testResource, firstTestContactID)
-	is.NoErr(err)
+	compareTestContactWithRecord(is, firstTestContact, record)
 
 	// we expect backoff retry and switch to CDC mode here
 	_, err = source.Read(ctx)
 	is.Equal(err, sdk.ErrBackoffRetry)
 
 	// create a test contact with a random properties
-	secondTestContact, err := createTestContact(ctx, hubspotClient)
-	is.NoErr(err)
+	secondTestContact := trc.NewTestCreateRecord()
 
 	// give HubSpot some time to process the HTTP request we sent
 	// and create the contact
-	ok, err = waitTestContacts(ctx, hubspotClient, 1)
+	err = waitTestContacts(ctx, hubspotClient, secondTestContact)
 	is.NoErr(err)
-	is.True(ok)
 
 	record, err = readWithRetry(ctx, source)
 	is.NoErr(err)
 
 	is.Equal(record.Operation, sdk.OperationCreate)
 
-	secondTestContactID := compareTestContactWithRecord(t, is, secondTestContact, record)
+	secondTestContactID := compareTestContactWithRecord(is, secondTestContact, record)
 
 	// update the second test contact
-	updatedTestContact, err := updateTestContact(ctx, hubspotClient, secondTestContactID)
-	is.NoErr(err)
+	updatedTestContact := trc.NewTestUpdateRecord(secondTestContactID)
 
 	record, err = readWithRetry(ctx, source)
 	is.NoErr(err)
 
 	is.Equal(record.Operation, sdk.OperationUpdate)
 
-	compareTestContactWithRecord(t, is, updatedTestContact, record)
-	err = hubspotClient.Delete(ctx, testResource, secondTestContactID)
-	is.NoErr(err)
+	compareTestContactWithRecord(is, updatedTestContact, record)
 
 	cancel()
 	err = source.Teardown(context.Background())
@@ -250,13 +226,12 @@ func TestSource_Read_successCDC(t *testing.T) {
 
 func TestSource_Read_failBackoffRetry(t *testing.T) {
 	is := is.New(t)
+	ctx := context.Background()
 
 	// prepare a config, configure and open a new source
 	config := prepareConfig(t, "")
 
 	source := NewSource()
-
-	ctx := context.Background()
 
 	err := source.Configure(ctx, config)
 	is.NoErr(err)
@@ -272,13 +247,12 @@ func TestSource_Read_failBackoffRetry(t *testing.T) {
 
 func TestSource_Read_failInvalidToken(t *testing.T) {
 	is := is.New(t)
+	ctx := context.Background()
 
 	// prepare a config with invalid access token, configure and open a new source
 	config := prepareConfig(t, "invalid")
 
 	source := NewSource()
-
-	ctx := context.Background()
 
 	err := source.Configure(ctx, config)
 	is.NoErr(err)
@@ -309,144 +283,109 @@ func prepareConfig(t *testing.T, accessToken string) map[string]string {
 	}
 }
 
-// createTestContact writes a random contact and returns it.
-func createTestContact(ctx context.Context, hubspotClient *hubspot.Client) (map[string]any, error) {
-	testContact := map[string]any{
-		"properties": map[string]any{
-			"email":     gofakeit.Email(),
-			"firstname": gofakeit.FirstName(),
-			"lastname":  gofakeit.LastName(),
-		},
-	}
-
-	err := hubspotClient.Create(ctx, testResource, testContact)
-	if err != nil {
-		return nil, fmt.Errorf("create contact: %w", err)
-	}
-
-	return testContact, nil
-}
-
-// updateTestContact updates a random contact's email, firstname and lastname and returns it.
-func updateTestContact(
-	ctx context.Context,
-	hubspotClient *hubspot.Client,
-	itemID string,
-) (map[string]any, error) {
-	updatedTestContact := map[string]any{
-		"properties": map[string]any{
-			"email":     gofakeit.Email(),
-			"firstname": gofakeit.FirstName(),
-			"lastname":  gofakeit.LastName(),
-		},
-	}
-
-	err := hubspotClient.Update(ctx, testResource, itemID, updatedTestContact)
-	if err != nil {
-		return nil, fmt.Errorf("update contact: %w", err)
-	}
-
-	return updatedTestContact, nil
-}
-
-// waitTestContacts waits until the expected count of contacts will be presented in HubSpot.
+// waitTestContacts waits until the expected count of contacts will be present
+// in HubSpot.
 func waitTestContacts(
 	ctx context.Context,
 	hubspotClient *hubspot.Client,
-	expectedCount int,
-) (bool, error) {
-	now := time.Now().UTC()
+	wantRecs ...sdk.Record,
+) error {
 	ticker := time.NewTicker(checkRetryTimeout)
+
+	filterGroups := make([]hubspot.SearchRequestFilterGroup, len(wantRecs))
+	for i, wantRec := range wantRecs {
+		sd := wantRec.Payload.After.(sdk.StructuredData)
+		properties := sd["properties"].(map[string]any)
+		filters := make([]hubspot.SearchRequestFilterGroupFilter, 0)
+		for k, v := range properties {
+			filters = append(filters, hubspot.SearchRequestFilterGroupFilter{
+				PropertyName: k,
+				Operator:     "EQ",
+				Value:        v.(string),
+			})
+		}
+		filterGroups[i].Filters = filters
+	}
+
+	req := &hubspot.SearchRequest{FilterGroups: filterGroups}
 
 	for i := 0; i < maxCheckRetries; i++ {
 		select {
 		case <-ctx.Done():
-			return false, fmt.Errorf("context canceled: %w", ctx.Err())
+			return fmt.Errorf("context canceled: %w", ctx.Err())
 
 		case <-ticker.C:
-			listResp, err := hubspotClient.SearchByCreatedBefore(ctx, testResource, now, retryItemsLimit, 0, nil)
+			listResp, err := hubspotClient.Search(ctx, testResource, req)
 			if err != nil {
-				return false, fmt.Errorf("search contacts: %w", err)
+				return fmt.Errorf("search contacts: %w", err)
 			}
 
-			if listResp.Total == expectedCount && len(listResp.Results) == expectedCount {
-				return true, nil
+			if listResp.Total == len(wantRecs) {
+				return nil
 			}
 		}
 	}
 
-	return false, nil
+	return fmt.Errorf("did not find records")
 }
 
 // readWithRetry tries to read a record from a source with retry.
 func readWithRetry(ctx context.Context, source sdk.Source) (sdk.Record, error) {
 	ticker := time.NewTicker(checkRetryTimeout)
 
+	var record sdk.Record
+	var err error
 	for i := 0; i < maxCheckRetries; i++ {
 		select {
 		case <-ctx.Done():
-			return sdk.Record{}, fmt.Errorf("context canceled: %w", ctx.Err())
-
+			return sdk.Record{}, ctx.Err()
 		case <-ticker.C:
-			record, err := source.Read(ctx)
-			if err != nil {
-				if errors.Is(err, sdk.ErrBackoffRetry) {
-					continue
-				}
-
-				return sdk.Record{}, fmt.Errorf("source read: %w", err)
+			record, err = source.Read(ctx)
+			if errors.Is(err, sdk.ErrBackoffRetry) {
+				continue
 			}
-
-			return record, nil
+			return record, err
 		}
 	}
-
-	return sdk.Record{}, sdk.ErrBackoffRetry
+	return record, err
 }
 
 // compareTestContactWithRecord parses and compares a testContact
 // represented as a map[string]any with a record's payload.
 // The method returns the test contact's id as a string.
 func compareTestContactWithRecord(
-	t *testing.T,
 	is *is.I,
-	testContact map[string]any,
-	record sdk.Record,
+	want sdk.Record,
+	got sdk.Record,
 ) string {
-	t.Helper()
+	is.Helper()
 
 	// unmarshal the item that was read by the source
-	var snapshotContactItem map[string]any
-	err := json.Unmarshal(record.Payload.After.Bytes(), &snapshotContactItem)
-	is.NoErr(err)
+	gotPayload, ok := got.Payload.After.(sdk.StructuredData)
+	is.True(ok)
 
-	snapshotContactItemProperties, ok := snapshotContactItem["properties"].(map[string]any)
+	gotProperties, ok := gotPayload["properties"].(map[string]any)
 	is.True(ok)
 
 	// take the object's id to delete the object when the test is completed
-	hsObjectID, ok := snapshotContactItemProperties["hs_object_id"].(string)
+	hsObjectID, ok := gotProperties["hs_object_id"].(string)
 	is.True(ok)
 
-	// check that the record's key contains the item's hs_object_id
-	hsObjectIDInt, err := strconv.Atoi(hsObjectID)
-	is.NoErr(err)
-
-	parsedKey := make(sdk.StructuredData)
-	err = json.Unmarshal(record.Key.Bytes(), &parsedKey)
-	is.NoErr(err)
+	gotKey, ok := got.Key.(sdk.StructuredData)
+	is.True(ok)
 
 	// convert to float64 because int is converted to float64 when unmarshaling json into map[string]any
-	parsedKeyID, ok := parsedKey[hubspot.ResultsFieldID].(float64)
+	gotKeyID, ok := gotKey[hubspot.ResultsFieldID].(string)
 	is.True(ok)
 
-	is.Equal(hsObjectIDInt, int(parsedKeyID))
+	is.Equal(hsObjectID, gotKeyID)
 
 	// remove fields that we don't know when creating a new item
-	delete(snapshotContactItemProperties, "hs_object_id")
-	delete(snapshotContactItemProperties, "createdate")
-	delete(snapshotContactItemProperties, "lastmodifieddate")
+	delete(gotProperties, "hs_object_id")
+	delete(gotProperties, "createdate")
+	delete(gotProperties, "lastmodifieddate")
 
-	is.Equal(snapshotContactItem["properties"], testContact["properties"])
+	is.Equal(gotProperties, want.Payload.After.(sdk.StructuredData)["properties"])
 
-	return strconv.Itoa(hsObjectIDInt)
+	return hsObjectID
 }
