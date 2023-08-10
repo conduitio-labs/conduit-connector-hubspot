@@ -115,6 +115,8 @@ issues:
         - dupl
         - goerr113
         - maintidx
+        - wrapcheck
+        - forcetypeassert
     - path: _integration_test
       linters:
         - varnamelen

@@ -44,6 +44,7 @@ type RecordCreator struct {
 }
 
 func NewRecordCreator(t *testing.T, resource string, flushToServer bool) *RecordCreator {
+	t.Helper()
 	rc := &RecordCreator{
 		is:            is.New(t),
 		resource:      resource,
@@ -82,6 +83,7 @@ func (rc *RecordCreator) NewTestCreateRecord() sdk.Record {
 	)
 
 	if rc.flushToServer {
+		//nolint:forcetypeassert // we just created the record, we can type assert without a check
 		err := rc.client.Create(context.Background(), rc.resource, rec.Payload.After.(sdk.StructuredData))
 		rc.is.NoErr(err)
 	}

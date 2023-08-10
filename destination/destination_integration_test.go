@@ -31,11 +31,9 @@ import (
 // testResource is a test resource that we use for integration tests.
 const testResource = "crm.contacts"
 
-var (
-	// testAccessToken will be used if a provided access token is empty,
-	// if both a provided access token and this value are empty an integration test will be skipped.
-	testAccessToken = os.Getenv("HUBSPOT_ACCESS_TOKEN")
-)
+// testAccessToken will be used if a provided access token is empty,
+// if both a provided access token and this value are empty an integration test will be skipped.
+var testAccessToken = os.Getenv("HUBSPOT_ACCESS_TOKEN")
 
 func TestDestination_Write_successCreate(t *testing.T) {
 	is := is.New(t)
