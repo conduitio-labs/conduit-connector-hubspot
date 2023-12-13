@@ -4,8 +4,8 @@ github.com/Masterminds/semver/v3 v3.2.0 h1:3MEsd0SM6jqZojhjLWWeBY+Kcjy9i6MQAeY7Y
 github.com/Masterminds/semver/v3 v3.2.0/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/Masterminds/sprig/v3 v3.2.3 h1:eL2fZNezLomi0uOLqjQoN6BfsDD+fyLtgbJMAj9n6YA=
 github.com/Masterminds/sprig/v3 v3.2.3/go.mod h1:rXcFaZ2zZbLRJv/xSysmlgIM1u11eBaRMhvYXJNkGuM=
-github.com/brianvoe/gofakeit/v6 v6.26.0 h1:DzJHo4K6RrAbglU6cReh+XqoaunuUMZ8OAQGXrYsXt8=
-github.com/brianvoe/gofakeit/v6 v6.26.0/go.mod h1:Xj58BMSnFqcn/fAQeSK+/PLtC5kSb7FJIq4JyGa8vEs=
+github.com/brianvoe/gofakeit/v6 v6.26.2 h1:qHTIsASX2jKgWV96hl67xwUQWHIG4YBNo6z/29FFTzY=
+github.com/brianvoe/gofakeit/v6 v6.26.2/go.mod h1:Xj58BMSnFqcn/fAQeSK+/PLtC5kSb7FJIq4JyGa8vEs=
 github.com/conduitio/conduit-connector-protocol v0.5.0 h1:Rr2SsDAvWDryQArvonwPoXBELQA2wRXr49xBLrAtBaM=
 github.com/conduitio/conduit-connector-protocol v0.5.0/go.mod h1:UIhHWxq52hvwwbkvQDaRgZRHfbpDDmU7tZaw0mwLdd4=
 github.com/conduitio/conduit-connector-sdk v0.7.2 h1:M1IDbtAfWict3PaSi5edclhW4VuRPkkFsL5hRihlmCk=
