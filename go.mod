@@ -7,7 +7,7 @@ toolchain go1.21.1
 require (
 	github.com/brianvoe/gofakeit/v6 v6.26.4
 	github.com/conduitio/conduit-connector-sdk v0.8.0
-	github.com/go-playground/validator/v10 v10.16.0
+	github.com/go-playground/validator/v10 v10.17.0
 	github.com/golang/mock v1.6.0
 	github.com/golangci/golangci-lint v1.55.2
 	github.com/google/go-querystring v1.1.0
