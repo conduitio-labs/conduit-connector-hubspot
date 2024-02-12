@@ -31,7 +31,7 @@ func TestClient_List_success(t *testing.T) {
 		teardown()
 	})
 
-	mux.HandleFunc("/crm/v3/objects/quotes", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/crm/v3/objects/quotes", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, err := w.Write(
 			[]byte(`{"results": [{"id": "1", "name": "hello"}], "paging": {"next": {"after": "2"}}}`),
@@ -69,7 +69,7 @@ func TestClient_List_withOptions(t *testing.T) {
 		teardown()
 	})
 
-	mux.HandleFunc("/crm/v3/objects/quotes", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/crm/v3/objects/quotes", func(_ http.ResponseWriter, r *http.Request) {
 		expectedQuery := "after=2&limit=1"
 
 		if r.URL.RawQuery != expectedQuery {

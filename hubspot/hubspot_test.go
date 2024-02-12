@@ -236,7 +236,7 @@ func TestClient_do_httpError(t *testing.T) {
 		teardown()
 	})
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	})
 
@@ -262,7 +262,7 @@ func TestClient_do_nilURL(t *testing.T) {
 		teardown()
 	})
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -293,7 +293,7 @@ func TestClient_do_invalidJSON(t *testing.T) {
 		Tag int `json:"key"`
 	}
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 		// we expect the key to be an integer, but get a string
 		fmt.Fprint(w, `{"key":"1"}`)
 	})

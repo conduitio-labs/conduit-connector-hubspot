@@ -8,12 +8,12 @@ require (
 	github.com/brianvoe/gofakeit/v6 v6.28.0
 	github.com/conduitio/conduit-connector-sdk v0.8.0
 	github.com/go-playground/validator/v10 v10.18.0
-	github.com/golang/mock v1.6.0
 	github.com/golangci/golangci-lint v1.56.1
 	github.com/google/go-querystring v1.1.0
 	github.com/hashicorp/go-retryablehttp v0.7.5
 	github.com/matryer/is v1.4.1
 	go.uber.org/goleak v1.3.0
+	go.uber.org/mock v0.4.0
 	go.uber.org/multierr v1.11.0
 )
 
