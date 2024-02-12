@@ -22,8 +22,8 @@ import (
 
 	"github.com/conduitio-labs/conduit-connector-hubspot/source/mock"
 	sdk "github.com/conduitio/conduit-connector-sdk"
-	"github.com/golang/mock/gomock"
 	"github.com/matryer/is"
+	"go.uber.org/mock/gomock"
 )
 
 func TestSource_Read_success(t *testing.T) {
