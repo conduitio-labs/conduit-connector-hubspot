@@ -5,7 +5,7 @@ toolchain go1.22.2
 
 require (
 	github.com/brianvoe/gofakeit/v6 v6.28.0
-	github.com/conduitio/conduit-connector-sdk v0.9.0
+	github.com/conduitio/conduit-connector-sdk v0.9.1
 	github.com/go-playground/validator/v10 v10.19.0
 	github.com/golangci/golangci-lint v1.57.2
 	github.com/google/go-querystring v1.1.0
@@ -52,8 +52,8 @@ require (
 	github.com/charithe/durationcheck v0.0.10 // indirect
 	github.com/chavacava/garif v0.1.0 // indirect
 	github.com/ckaznocha/intrange v0.1.1 // indirect
-	github.com/conduitio/conduit-commons v0.1.2-0.20240416084352-3f77773ddcfc // indirect
-	github.com/conduitio/conduit-connector-protocol v0.5.1-0.20240408121719-ffe7a46af296 // indirect
+	github.com/conduitio/conduit-commons v0.2.0 // indirect
+	github.com/conduitio/conduit-connector-protocol v0.6.0 // indirect
 	github.com/curioswitch/go-reassign v0.2.0 // indirect
 	github.com/daixiang0/gci v0.12.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -203,7 +203,7 @@ require (
 	go.uber.org/automaxprocs v1.5.3 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/crypto v0.22.0 // indirect
-	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8 // indirect
+	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f // indirect
 	golang.org/x/exp/typeparams v0.0.0-20240314144324-c7f7c6466f7f // indirect
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/net v0.24.0 // indirect
@@ -212,8 +212,8 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.20.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240325203815-454cdb8f5daa // indirect
-	google.golang.org/grpc v1.63.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240415180920-8c6c420018be // indirect
+	google.golang.org/grpc v1.63.2 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
