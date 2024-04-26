@@ -4,7 +4,6 @@ VERSION=$(shell git describe --tags --dirty --always)
 build:
 	go build -ldflags "-X 'github.com/conduitio-labs/conduit-connector-hubspot.version=${VERSION}'" -o conduit-connector-hubspot cmd/connector/main.go
 
-# if you plan to run integration tests it's recommended to do that with -p=1 specified.
 .PHONY: test
 test:
 	go test $(GOTEST_FLAGS) ./...
@@ -20,5 +19,5 @@ generate:
 .PHONY: install-tools
 install-tools:
 	@echo Installing tools from tools.go
-	@go list -e -f '{{ join .Imports "\n" }}' tools.go | xargs -tI % go install %
+	@go list -e -f '{{ join .Imports "\n" }}' tools.go | xargs -I % go list -f "%@{{.Module.Version}}" % | xargs -tI % go install %
 	@go mod tidy
