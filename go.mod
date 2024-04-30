@@ -5,7 +5,7 @@ go 1.22.2
 require (
 	github.com/brianvoe/gofakeit/v6 v6.28.0
 	github.com/conduitio/conduit-connector-sdk v0.9.1
-	github.com/go-playground/validator/v10 v10.19.0
+	github.com/go-playground/validator/v10 v10.20.0
 	github.com/golangci/golangci-lint v1.57.2
 	github.com/google/go-querystring v1.1.0
 	github.com/hashicorp/go-retryablehttp v0.7.5
