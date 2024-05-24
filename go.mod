@@ -1,6 +1,6 @@
 module github.com/conduitio-labs/conduit-connector-hubspot
 
-go 1.22.2
+go 1.22.3
 
 require (
 	github.com/brianvoe/gofakeit/v6 v6.28.0

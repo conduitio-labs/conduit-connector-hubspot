@@ -59,7 +59,7 @@ type Config struct {
 	// on the requested HubSpot resource, they will be ignored.
 	// Only CRM resources support this.
 	ExtraProperties []string `key:"extraProperties"`
-	// Snapshot determines whether or not the connector will take a snapshot
+	// Snapshot determines whether the connector will take a snapshot or not
 	// of the entire collection before starting CDC mode.
 	Snapshot bool `key:"snapshot"`
 }

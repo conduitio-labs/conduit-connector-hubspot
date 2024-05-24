@@ -143,7 +143,7 @@ func (w *Writer) delete(ctx context.Context, record sdk.Record) error {
 // structurizeData tries to convert [sdk.Data] to [sdk.StructuredData].
 func (w *Writer) structurizeData(data sdk.Data) (sdk.StructuredData, error) {
 	if data == nil || len(data.Bytes()) == 0 {
-		return nil, nil
+		return nil, nil //nolint:nilnil // ignoring this validation for now
 	}
 
 	if sd, ok := data.(sdk.StructuredData); ok {

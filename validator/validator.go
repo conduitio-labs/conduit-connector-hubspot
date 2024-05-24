@@ -20,10 +20,9 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/multierr"
-
-	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
 )
 
 const (
