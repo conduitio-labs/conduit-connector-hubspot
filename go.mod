@@ -8,7 +8,7 @@ require (
 	github.com/go-playground/validator/v10 v10.20.0
 	github.com/golangci/golangci-lint v1.59.0
 	github.com/google/go-querystring v1.1.0
-	github.com/hashicorp/go-retryablehttp v0.7.6
+	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/matryer/is v1.4.1
 	go.uber.org/goleak v1.3.0
 	go.uber.org/mock v0.4.0
