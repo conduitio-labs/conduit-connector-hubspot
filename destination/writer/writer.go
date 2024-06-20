@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
 	sdk "github.com/conduitio/conduit-connector-sdk"
@@ -52,6 +53,8 @@ func NewWriter(params Params) *Writer {
 //   - If the operation is [sdk.OperationDelete]
 //     the method will try to delete an existing record using the record key.
 func (w *Writer) Write(ctx context.Context, record sdk.Record) error {
+	//format payload
+
 	err := sdk.Util.Destination.Route(ctx, record,
 		w.insert,
 		w.update,
@@ -77,7 +80,9 @@ func (w *Writer) insert(ctx context.Context, record sdk.Record) error {
 		return ErrEmptyPayload
 	}
 
-	if err := w.hubspotClient.Create(ctx, w.resource, payload); err != nil {
+	formatedPayload := w.formatData(payload)
+
+	if err := w.hubspotClient.Create(ctx, w.resource, formatedPayload); err != nil {
 		return fmt.Errorf("create %q item: %w", w.resource, err)
 	}
 
@@ -110,7 +115,9 @@ func (w *Writer) update(ctx context.Context, record sdk.Record) error {
 		return ErrEmptyPayload
 	}
 
-	if err := w.hubspotClient.Update(ctx, w.resource, keyValue, payload); err != nil {
+	formatedPayload := w.formatData(payload)
+
+	if err := w.hubspotClient.Update(ctx, w.resource, keyValue, formatedPayload); err != nil {
 		return fmt.Errorf("update %q item: %w", w.resource, err)
 	}
 
@@ -138,6 +145,30 @@ func (w *Writer) delete(ctx context.Context, record sdk.Record) error {
 	}
 
 	return nil
+}
+
+func (w *Writer) formatData(data sdk.StructuredData) map[string]any {
+	loweredMap := make(map[string]any, len(data))
+
+	//lower all key columns, hubspot will not accept upper case keys
+	for key, value := range data {
+		lowerKey := strings.ToLower(key)
+		loweredMap[lowerKey] = value
+	}
+
+	payload := w.resourceFormat(loweredMap)
+
+	return payload
+}
+
+func (w *Writer) resourceFormat(payload map[string]any) map[string]any {
+	switch w.resource {
+	case "crm.companies", "crm.contacts", "crm.deals", "crm.products", "crm.tickets", "crm.quotes":
+		formatedMap := make(map[string]any)
+		formatedMap["properties"] = payload
+		return formatedMap
+	}
+	return payload
 }
 
 // structurizeData tries to convert [sdk.Data] to [sdk.StructuredData].
