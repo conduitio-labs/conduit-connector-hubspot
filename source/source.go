@@ -24,6 +24,7 @@ import (
 	"github.com/conduitio-labs/conduit-connector-hubspot/config"
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
 	"github.com/conduitio-labs/conduit-connector-hubspot/source/iterator"
+	cconfig "github.com/conduitio/conduit-commons/config"
 	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/hashicorp/go-retryablehttp"
@@ -50,45 +51,40 @@ func NewSource() sdk.Source {
 }
 
 // Parameters is a map of named [config.Parameter] that describe how to configure the [Source].
-func (s *Source) Parameters() config.Parameters {
-	return map[string]config.Parameter{
+func (s *Source) Parameters() cconfig.Parameters {
+	return map[string]cconfig.Parameter{
 		config.KeyAccessToken: {
 			Default:     "",
-			Required:    true,
 			Description: "The private app’s access token for accessing the HubSpot API.",
+			Validations: []cconfig.Validation{cconfig.ValidationRequired{}},
 		},
 		config.KeyResource: {
 			Default:     "",
-			Required:    true,
 			Description: "The name of a HubSpot resource the connector will work with.",
+			Validations: []cconfig.Validation{cconfig.ValidationRequired{}},
 		},
 		config.KeyMaxRetries: {
-			Default:  "4",
-			Required: false,
+			Default: "4",
 			Description: "The number of HubSpot API request retries " +
 				"that will be tried before giving up if a request fails.",
 		},
 		ConfigKeyPollingPeriod: {
 			Default:     "5s",
-			Required:    false,
 			Description: "The duration defines a period of polling new items if CDC is not available for a resource.",
 		},
 		ConfigKeyBufferSize: {
-			Default:  "100",
-			Required: false,
+			Default: "100",
 			Description: "The buffer size for consumed items. " +
 				"It will also be used as a limit when retrieving items from the HubSpot API.",
 		},
 		ConfigKeyExtraProperties: {
-			Default:  "",
-			Required: false,
+			Default: "",
 			Description: "The list of HubSpot resource properties to include in addition to the default. " +
 				"If any of the specified properties are not present on the requested HubSpot resource, " +
 				"they will be ignored. Only CRM resources support this.",
 		},
 		ConfigKeySnapshot: {
-			Default:  "true",
-			Required: false,
+			Default: "true",
 			Description: "The field determines whether or not the connector " +
 				"will take a snapshot of the entire collection before starting CDC mode.",
 		},
@@ -96,7 +92,7 @@ func (s *Source) Parameters() config.Parameters {
 }
 
 // Configure parses and initializes the config.
-func (s *Source) Configure(_ context.Context, cfg config.Config) (err error) {
+func (s *Source) Configure(_ context.Context, cfg cconfig.Config) (err error) {
 	s.config, err = ParseConfig(cfg)
 	if err != nil {
 		return fmt.Errorf("parse source config: %w", err)

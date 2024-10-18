@@ -23,6 +23,7 @@ import (
 	"github.com/conduitio-labs/conduit-connector-hubspot/config"
 	"github.com/conduitio-labs/conduit-connector-hubspot/destination/writer"
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
+	cconfig "github.com/conduitio/conduit-commons/config"
 	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/hashicorp/go-retryablehttp"
@@ -47,21 +48,20 @@ func NewDestination() sdk.Destination {
 }
 
 // Parameters is a map of named [config.Parameter] that describe how to configure the [Destination].
-func (d *Destination) Parameters() config.Parameters {
-	return map[string]config.Parameter{
+func (d *Destination) Parameters() cconfig.Parameters {
+	return map[string]cconfig.Parameter{
 		config.KeyAccessToken: {
 			Default:     "",
-			Required:    true,
 			Description: "The private app’s access token for accessing the HubSpot API.",
+			Validations: []cconfig.Validation{cconfig.ValidationRequired{}},
 		},
 		config.KeyResource: {
 			Default:     "",
-			Required:    true,
 			Description: "The name of a HubSpot resource the connector will work with.",
+			Validations: []cconfig.Validation{cconfig.ValidationRequired{}},
 		},
 		config.KeyMaxRetries: {
-			Default:  "4",
-			Required: false,
+			Default: "4",
 			Description: "The number of HubSpot API request retries " +
 				"that will be tried before giving up if a request fails.",
 		},
@@ -69,7 +69,7 @@ func (d *Destination) Parameters() config.Parameters {
 }
 
 // Configure parses and initializes the config.
-func (d *Destination) Configure(_ context.Context, cfg config.Config) (err error) {
+func (d *Destination) Configure(_ context.Context, cfg cconfig.Config) (err error) {
 	d.config, err = config.Parse(cfg)
 	if err != nil {
 		return fmt.Errorf("parse destination config: %w", err)

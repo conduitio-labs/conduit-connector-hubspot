@@ -267,7 +267,7 @@ func (c *CDC) getRecord(item hubspot.ListResponseResult,
 	// So if the itemDeletedAt.Unix() is not equal to 0, than the item is deleted.
 	if itemDeletedAt.Unix() > 0 {
 		return sdk.Util.Source.NewRecordDelete(sdkPosition, metadata,
-			opencdc.StructuredData{hubspot.ResultsFieldID: c.position.ItemID},
+			opencdc.StructuredData{hubspot.ResultsFieldID: c.position.ItemID}, nil,
 		)
 	}
 

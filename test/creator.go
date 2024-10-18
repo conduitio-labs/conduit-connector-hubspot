@@ -119,9 +119,7 @@ func (rc *RecordCreator) NewTestUpdateRecord(id string) opencdc.Record {
 
 // NewTestDeleteRecord creates a test record with [opencdc.OperationDelete].
 func (rc *RecordCreator) NewTestDeleteRecord(id string) opencdc.Record {
-	return sdk.Util.Source.NewRecordDelete(
-		nil, nil, opencdc.StructuredData{"id": id},
-	)
+	return sdk.Util.Source.NewRecordDelete(nil, nil, opencdc.StructuredData{"id": id}, nil)
 }
 
 // Cleanup deletes all created records from hubspot.
