@@ -25,6 +25,7 @@ import (
 	"github.com/conduitio-labs/conduit-connector-hubspot/config"
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
 	"github.com/conduitio-labs/conduit-connector-hubspot/source"
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"go.uber.org/goleak"
 )
@@ -53,13 +54,13 @@ type driver struct {
 }
 
 // GenerateRecord overides the [sdk.ConfigurableAcceptanceTestDriver] [GenerateRecord] method.
-func (d driver) GenerateRecord(t *testing.T, operation sdk.Operation) sdk.Record {
+func (d driver) GenerateRecord(t *testing.T, operation opencdc.Operation) opencdc.Record {
 	t.Helper()
 
-	return sdk.Record{
+	return opencdc.Record{
 		Operation: operation,
-		Payload: sdk.Change{
-			After: sdk.StructuredData{
+		Payload: opencdc.Change{
+			After: opencdc.StructuredData{
 				"properties": map[string]any{
 					testFirstNameFieldName: gofakeit.FirstName(),
 					testLastNameFieldName:  gofakeit.LastName(),
@@ -72,7 +73,7 @@ func (d driver) GenerateRecord(t *testing.T, operation sdk.Operation) sdk.Record
 
 // ReadFromDestination overrides the [sdk.ConfigurableAcceptanceTestDriver] [ReadFromDestination] method.
 // It removes some redundant fields that are unknown when we insert data.
-func (d driver) ReadFromDestination(t *testing.T, records []sdk.Record) []sdk.Record {
+func (d driver) ReadFromDestination(t *testing.T, records []opencdc.Record) []opencdc.Record {
 	t.Helper()
 
 	// the search endpoint lags behind, query it and wait for all results to disappear
@@ -92,20 +93,20 @@ func (d driver) ReadFromDestination(t *testing.T, records []sdk.Record) []sdk.Re
 
 	newRecords := d.ConfigurableAcceptanceTestDriver.ReadFromDestination(t, records)
 
-	out := make([]sdk.Record, len(newRecords))
+	out := make([]opencdc.Record, len(newRecords))
 
 	for i, newRecord := range newRecords {
-		newRecordStructuredPayload, ok := newRecord.Payload.After.(sdk.StructuredData)
+		newRecordStructuredPayload, ok := newRecord.Payload.After.(opencdc.StructuredData)
 		if !ok {
 			// this shouldn't happen
-			t.Fatalf("expected payload to contain sdk.StructuredData, got %T", newRecord.Payload.After)
+			t.Fatalf("expected payload to contain opencdc.StructuredData, got %T", newRecord.Payload.After)
 		}
 
-		out[i] = sdk.Record{
+		out[i] = opencdc.Record{
 			Operation: newRecord.Operation,
 			Position:  newRecord.Position,
-			Payload: sdk.Change{
-				After: sdk.StructuredData{
+			Payload: opencdc.Change{
+				After: opencdc.StructuredData{
 					"properties": map[string]any{
 						testIDFieldName:        newRecordStructuredPayload[testIDFieldName],
 						testFirstNameFieldName: newRecordStructuredPayload[testFirstNameFieldName],
@@ -121,9 +122,9 @@ func (d driver) ReadFromDestination(t *testing.T, records []sdk.Record) []sdk.Re
 }
 
 // WriteToSource overrides the [sdk.ConfigurableAcceptanceTestDriver] [WriteToSource] method.
-// It takes items from HubSpot and returns them as [sdk.Record]s, because Source returns fields
+// It takes items from HubSpot and returns them as [opencdc.Record]s, because Source returns fields
 // that are unknown when we insert them.
-func (d driver) WriteToSource(t *testing.T, records []sdk.Record) []sdk.Record {
+func (d driver) WriteToSource(t *testing.T, records []opencdc.Record) []opencdc.Record {
 	t.Helper()
 
 	newRecords := d.ConfigurableAcceptanceTestDriver.WriteToSource(t, records)
@@ -147,7 +148,7 @@ func (d driver) WriteToSource(t *testing.T, records []sdk.Record) []sdk.Record {
 
 	// fill records payload with the newly created HubSpot items properties
 	for i := range newRecords {
-		recordPayloadAfter, ok := newRecords[i].Payload.After.(sdk.StructuredData)
+		recordPayloadAfter, ok := newRecords[i].Payload.After.(opencdc.StructuredData)
 		if !ok {
 			t.Fatal("record's payload after is not structured")
 		}
@@ -167,8 +168,8 @@ func (d driver) WriteToSource(t *testing.T, records []sdk.Record) []sdk.Record {
 			t.Fatal("can't find a list resp result by email")
 		}
 
-		newRecords[i].Key = sdk.StructuredData{hubspot.ResultsFieldID: listRespResult["id"]}
-		newRecords[i].Payload.After = sdk.StructuredData(listRespResult)
+		newRecords[i].Key = opencdc.StructuredData{hubspot.ResultsFieldID: listRespResult["id"]}
+		newRecords[i].Payload.After = opencdc.StructuredData(listRespResult)
 	}
 
 	return newRecords

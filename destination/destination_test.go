@@ -20,7 +20,7 @@ import (
 
 	"github.com/conduitio-labs/conduit-connector-hubspot/destination/mock"
 	"github.com/conduitio-labs/conduit-connector-hubspot/destination/writer"
-	sdk "github.com/conduitio/conduit-connector-sdk"
+	"github.com/conduitio/conduit-commons/opencdc"
 	"github.com/matryer/is"
 	"go.uber.org/mock/gomock"
 )
@@ -33,14 +33,14 @@ func TestDestination_Write_success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	ctx := context.Background()
 
-	record := sdk.Record{
-		Position:  sdk.Position("1.0"),
-		Operation: sdk.OperationCreate,
-		Key: sdk.StructuredData{
+	record := opencdc.Record{
+		Position:  opencdc.Position("1.0"),
+		Operation: opencdc.OperationCreate,
+		Key: opencdc.StructuredData{
 			"id": 1,
 		},
-		Payload: sdk.Change{
-			After: sdk.StructuredData{
+		Payload: opencdc.Change{
+			After: opencdc.StructuredData{
 				"id":   1,
 				"name": "Void",
 			},
@@ -54,7 +54,7 @@ func TestDestination_Write_success(t *testing.T) {
 		writer: w,
 	}
 
-	written, err := d.Write(ctx, []sdk.Record{record})
+	written, err := d.Write(ctx, []opencdc.Record{record})
 	is.NoErr(err)
 	is.Equal(written, 1)
 }
@@ -67,10 +67,10 @@ func TestDestination_Write_fail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	ctx := context.Background()
 
-	record := sdk.Record{
-		Position:  sdk.Position("1.0"),
-		Operation: sdk.OperationCreate,
-		Key: sdk.StructuredData{
+	record := opencdc.Record{
+		Position:  opencdc.Position("1.0"),
+		Operation: opencdc.OperationCreate,
+		Key: opencdc.StructuredData{
 			"id": 1,
 		},
 	}
@@ -82,7 +82,7 @@ func TestDestination_Write_fail(t *testing.T) {
 		writer: w,
 	}
 
-	written, err := d.Write(ctx, []sdk.Record{record})
+	written, err := d.Write(ctx, []opencdc.Record{record})
 	is.Equal(err != nil, true)
 	is.Equal(written, 0)
 }

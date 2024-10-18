@@ -23,6 +23,7 @@ import (
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/matryer/is"
 )
@@ -38,7 +39,7 @@ var (
 type RecordCreator struct {
 	is            *is.I
 	resource      string
-	testRecords   []sdk.Record
+	testRecords   []opencdc.Record
 	flushToServer bool
 	client        *hubspot.Client
 }
@@ -60,16 +61,16 @@ func NewRecordCreator(t *testing.T, resource string, flushToServer bool) *Record
 	return rc
 }
 
-// NewTestCreateRecord creates a test record with [sdk.OperationCreate].
-func (rc *RecordCreator) NewTestCreateRecord() sdk.Record {
+// NewTestCreateRecord creates a test record with [opencdc.OperationCreate].
+func (rc *RecordCreator) NewTestCreateRecord() opencdc.Record {
 	id := gofakeit.Int32()
 	rec := sdk.Util.Source.NewRecordCreate(
 		nil, nil,
-		sdk.StructuredData{
+		opencdc.StructuredData{
 			// HubSpot doesn't allow to specify a custom identifier, so it'll be ignored.
 			"id": id,
 		},
-		sdk.StructuredData{
+		opencdc.StructuredData{
 			"id":        id,
 			"archived":  false,
 			"createdAt": time.Now().Format(time.RFC3339),
@@ -84,7 +85,7 @@ func (rc *RecordCreator) NewTestCreateRecord() sdk.Record {
 
 	if rc.flushToServer {
 		//nolint:forcetypeassert // we just created the record, we can type assert without a check
-		err := rc.client.Create(context.Background(), rc.resource, rec.Payload.After.(sdk.StructuredData))
+		err := rc.client.Create(context.Background(), rc.resource, rec.Payload.After.(opencdc.StructuredData))
 		rc.is.NoErr(err)
 	}
 
@@ -92,15 +93,15 @@ func (rc *RecordCreator) NewTestCreateRecord() sdk.Record {
 	return rec
 }
 
-// NewTestUpdateRecord creates a test record with [sdk.OperationUpdate].
-func (rc *RecordCreator) NewTestUpdateRecord(id string) sdk.Record {
+// NewTestUpdateRecord creates a test record with [opencdc.OperationUpdate].
+func (rc *RecordCreator) NewTestUpdateRecord(id string) opencdc.Record {
 	rec := sdk.Util.Source.NewRecordUpdate(
 		nil, nil,
-		sdk.StructuredData{
+		opencdc.StructuredData{
 			"id": id,
 		},
 		nil,
-		sdk.StructuredData{
+		opencdc.StructuredData{
 			"id":        id,
 			"archived":  false,
 			"createdAt": time.Now().Format(time.RFC3339),
@@ -116,11 +117,9 @@ func (rc *RecordCreator) NewTestUpdateRecord(id string) sdk.Record {
 	return rec
 }
 
-// NewTestDeleteRecord creates a test record with [sdk.OperationDelete].
-func (rc *RecordCreator) NewTestDeleteRecord(id string) sdk.Record {
-	return sdk.Util.Source.NewRecordDelete(
-		nil, nil, sdk.StructuredData{"id": id},
-	)
+// NewTestDeleteRecord creates a test record with [opencdc.OperationDelete].
+func (rc *RecordCreator) NewTestDeleteRecord(id string) opencdc.Record {
+	return sdk.Util.Source.NewRecordDelete(nil, nil, opencdc.StructuredData{"id": id}, nil)
 }
 
 // Cleanup deletes all created records from hubspot.

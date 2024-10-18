@@ -24,7 +24,7 @@ import (
 	"github.com/conduitio-labs/conduit-connector-hubspot/config"
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
 	"github.com/conduitio-labs/conduit-connector-hubspot/test"
-	sdk "github.com/conduitio/conduit-connector-sdk"
+	"github.com/conduitio/conduit-commons/opencdc"
 	"github.com/matryer/is"
 )
 
@@ -52,12 +52,12 @@ func TestDestination_Write_successCreate(t *testing.T) {
 	err = destination.Open(ctx)
 	is.NoErr(err)
 
-	// create a test sdk.Record
+	// create a test opencdc.Record
 	trc := test.NewRecordCreator(t, testResource, false)
 	testCreateRecord := trc.NewTestCreateRecord()
 
 	// write the test record and check if the returned err is nil and n is equal to one
-	n, err := destination.Write(ctx, []sdk.Record{testCreateRecord})
+	n, err := destination.Write(ctx, []opencdc.Record{testCreateRecord})
 	is.NoErr(err)
 	is.Equal(n, 1)
 
@@ -88,12 +88,12 @@ func TestDestination_Write_successCreateUpdate(t *testing.T) {
 	err = destination.Open(ctx)
 	is.NoErr(err)
 
-	// create a test sdk.Record
+	// create a test opencdc.Record
 	trc := test.NewRecordCreator(t, testResource, false)
 	testCreateRecord := trc.NewTestCreateRecord()
 
 	// write the test record and check if the returned err is nil and n is equal to one
-	n, err := destination.Write(ctx, []sdk.Record{testCreateRecord})
+	n, err := destination.Write(ctx, []opencdc.Record{testCreateRecord})
 	is.NoErr(err)
 	is.Equal(n, 1)
 
@@ -104,7 +104,7 @@ func TestDestination_Write_successCreateUpdate(t *testing.T) {
 	// create a test record with update operation
 	testUpdateRecord := trc.NewTestUpdateRecord(ids[0])
 
-	n, err = destination.Write(ctx, []sdk.Record{testUpdateRecord})
+	n, err = destination.Write(ctx, []opencdc.Record{testUpdateRecord})
 	is.NoErr(err)
 	is.Equal(n, 1)
 
@@ -133,12 +133,12 @@ func TestDestination_Write_successCreateDelete(t *testing.T) {
 	err = destination.Open(ctx)
 	is.NoErr(err)
 
-	// create a test sdk.Record
+	// create a test opencdc.Record
 	trc := test.NewRecordCreator(t, testResource, false)
 	testCreateRecord := trc.NewTestCreateRecord()
 
 	// write the test record and check if the returned err is nil and n is equal to one
-	n, err := destination.Write(ctx, []sdk.Record{testCreateRecord})
+	n, err := destination.Write(ctx, []opencdc.Record{testCreateRecord})
 	is.NoErr(err)
 	is.Equal(n, 1)
 
@@ -149,7 +149,7 @@ func TestDestination_Write_successCreateDelete(t *testing.T) {
 	// create a test record with delete operation
 	testDeleteRecord := trc.NewTestDeleteRecord(ids[0])
 
-	n, err = destination.Write(ctx, []sdk.Record{testDeleteRecord})
+	n, err = destination.Write(ctx, []opencdc.Record{testDeleteRecord})
 	is.NoErr(err)
 	is.Equal(n, 1)
 
@@ -182,9 +182,9 @@ func TestDestination_Write_failInvalidToken(t *testing.T) {
 	is.NoErr(err)
 
 	// we expect to get a 401 error because the access token we provided is invalid
-	n, err := destination.Write(ctx, []sdk.Record{{
-		Operation: sdk.OperationCreate,
-		Payload:   sdk.Change{After: sdk.StructuredData{}},
+	n, err := destination.Write(ctx, []opencdc.Record{{
+		Operation: opencdc.OperationCreate,
+		Payload:   opencdc.Change{After: opencdc.StructuredData{}},
 	}})
 	is.True(err != nil)
 	is.Equal(n, 0)

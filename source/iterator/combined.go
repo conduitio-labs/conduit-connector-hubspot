@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
@@ -122,7 +123,7 @@ func (c *Combined) HasNext(ctx context.Context) (bool, error) {
 }
 
 // Next returns the next record.
-func (c *Combined) Next(ctx context.Context) (sdk.Record, error) {
+func (c *Combined) Next(ctx context.Context) (opencdc.Record, error) {
 	switch {
 	case c.snapshot != nil:
 		return c.snapshot.Next(ctx)
@@ -131,7 +132,7 @@ func (c *Combined) Next(ctx context.Context) (sdk.Record, error) {
 		return c.cdc.Next(ctx)
 
 	default:
-		return sdk.Record{}, ErrNoInitializedIterator
+		return opencdc.Record{}, ErrNoInitializedIterator
 	}
 }
 

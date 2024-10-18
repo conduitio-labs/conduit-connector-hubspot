@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/conduitio-labs/conduit-connector-hubspot/source/mock"
-	sdk "github.com/conduitio/conduit-connector-sdk"
+	"github.com/conduitio/conduit-commons/opencdc"
 	"github.com/matryer/is"
 	"go.uber.org/mock/gomock"
 )
@@ -34,17 +34,17 @@ func TestSource_Read_success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	ctx := context.Background()
 
-	key := make(sdk.StructuredData)
+	key := make(opencdc.StructuredData)
 	key["id"] = 1
 
-	metadata := make(sdk.Metadata)
+	metadata := make(opencdc.Metadata)
 	metadata.SetCreatedAt(time.Time{})
 
-	record := sdk.Record{
-		Position: sdk.Position(`{"lastId": 1}`),
+	record := opencdc.Record{
+		Position: opencdc.Position(`{"lastId": 1}`),
 		Metadata: metadata,
 		Key:      key,
-		Payload: sdk.Change{
+		Payload: opencdc.Change{
 			After: key,
 		},
 	}
@@ -92,7 +92,7 @@ func TestSource_Read_failNext(t *testing.T) {
 
 	it := mock.NewMockIterator(ctrl)
 	it.EXPECT().HasNext(ctx).Return(true, nil)
-	it.EXPECT().Next(ctx).Return(sdk.Record{}, errors.New("key is not exist"))
+	it.EXPECT().Next(ctx).Return(opencdc.Record{}, errors.New("key is not exist"))
 
 	s := Source{
 		iterator: it,
