@@ -18,7 +18,7 @@ import (
 	"reflect"
 	"testing"
 
-	sdk "github.com/conduitio/conduit-connector-sdk"
+	"github.com/conduitio/conduit-commons/opencdc"
 )
 
 func TestPosition_MarshalSDKPosition(t *testing.T) {
@@ -32,7 +32,7 @@ func TestPosition_MarshalSDKPosition(t *testing.T) {
 	tests := []struct {
 		name    string
 		fields  fields
-		want    sdk.Position
+		want    opencdc.Position
 		wantErr bool
 	}{
 		{
@@ -41,7 +41,7 @@ func TestPosition_MarshalSDKPosition(t *testing.T) {
 				Mode:   CDCPositionMode,
 				LastID: "1",
 			},
-			want:    sdk.Position([]byte(`{"mode":"cdc","itemId":"1"}`)),
+			want:    opencdc.Position([]byte(`{"mode":"cdc","itemId":"1"}`)),
 			wantErr: false,
 		},
 	}
@@ -75,7 +75,7 @@ func TestParsePosition(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		sdkPosition sdk.Position
+		sdkPosition opencdc.Position
 	}
 
 	tests := []struct {
@@ -87,7 +87,7 @@ func TestParsePosition(t *testing.T) {
 		{
 			name: "success",
 			args: args{
-				sdkPosition: sdk.Position([]byte(`{"mode":"cdc","itemId": "1"}`)),
+				sdkPosition: opencdc.Position([]byte(`{"mode":"cdc","itemId": "1"}`)),
 			},
 			want: &Position{
 				Mode:   CDCPositionMode,
@@ -106,7 +106,7 @@ func TestParsePosition(t *testing.T) {
 		{
 			name: "fail_invalid_json_position",
 			args: args{
-				sdkPosition: sdk.Position([]byte(`invalid_json`)),
+				sdkPosition: opencdc.Position([]byte(`invalid_json`)),
 			},
 			want:    nil,
 			wantErr: true,

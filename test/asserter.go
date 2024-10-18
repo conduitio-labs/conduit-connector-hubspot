@@ -20,7 +20,7 @@ import (
 	"testing"
 
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
-	sdk "github.com/conduitio/conduit-connector-sdk"
+	"github.com/conduitio/conduit-commons/opencdc"
 	"github.com/matryer/is"
 )
 
@@ -45,7 +45,7 @@ func NewRecordAsserter(t *testing.T, resource string) *RecordAsserter {
 	return ra
 }
 
-func (ra *RecordAsserter) Exists(wantRecs ...sdk.Record) []string {
+func (ra *RecordAsserter) Exists(wantRecs ...opencdc.Record) []string {
 	ctx := context.Background()
 	listResp, err := ra.client.List(ctx, ra.resource, nil)
 	ra.is.NoErr(err)
@@ -78,8 +78,8 @@ func (ra *RecordAsserter) NotExists(ids ...string) {
 	}
 }
 
-func (*RecordAsserter) isEqual(want sdk.Record, got hubspot.ListResponseResult) bool {
-	sd, ok := want.Payload.After.(sdk.StructuredData)
+func (*RecordAsserter) isEqual(want opencdc.Record, got hubspot.ListResponseResult) bool {
+	sd, ok := want.Payload.After.(opencdc.StructuredData)
 	if !ok {
 		return false
 	}

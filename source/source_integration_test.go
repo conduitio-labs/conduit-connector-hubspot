@@ -26,6 +26,7 @@ import (
 	"github.com/conduitio-labs/conduit-connector-hubspot/config"
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
 	"github.com/conduitio-labs/conduit-connector-hubspot/test"
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/matryer/is"
 )
@@ -63,7 +64,7 @@ func TestSource_Read_successSnapshot(t *testing.T) {
 		Timeout: testHTTPClientTimeout,
 	})
 
-	// create a test sdk.Record
+	// create a test opencdc.Record
 	trc := test.NewRecordCreator(t, testResource, true)
 	testContact := trc.NewTestCreateRecord()
 
@@ -80,7 +81,7 @@ func TestSource_Read_successSnapshot(t *testing.T) {
 	record, err := readWithRetry(ctx, source)
 	is.NoErr(err)
 
-	is.Equal(record.Operation, sdk.OperationSnapshot)
+	is.Equal(record.Operation, opencdc.OperationSnapshot)
 
 	compareTestContactWithRecord(is, testContact, record)
 
@@ -125,7 +126,7 @@ func TestSource_Read_successSnapshotContinue(t *testing.T) {
 	record, err := readWithRetry(ctx, source)
 	is.NoErr(err)
 
-	is.Equal(record.Operation, sdk.OperationSnapshot)
+	is.Equal(record.Operation, opencdc.OperationSnapshot)
 
 	compareTestContactWithRecord(is, firstTestContact, record)
 
@@ -143,7 +144,7 @@ func TestSource_Read_successSnapshotContinue(t *testing.T) {
 	record, err = readWithRetry(ctx, source)
 	is.NoErr(err)
 
-	is.Equal(record.Operation, sdk.OperationSnapshot)
+	is.Equal(record.Operation, opencdc.OperationSnapshot)
 
 	compareTestContactWithRecord(is, secondTestContact, record)
 
@@ -186,7 +187,7 @@ func TestSource_Read_successCDC(t *testing.T) {
 	record, err := readWithRetry(ctx, source)
 	is.NoErr(err)
 
-	is.Equal(record.Operation, sdk.OperationSnapshot)
+	is.Equal(record.Operation, opencdc.OperationSnapshot)
 
 	compareTestContactWithRecord(is, firstTestContact, record)
 
@@ -205,7 +206,7 @@ func TestSource_Read_successCDC(t *testing.T) {
 	record, err = readWithRetry(ctx, source)
 	is.NoErr(err)
 
-	is.Equal(record.Operation, sdk.OperationCreate)
+	is.Equal(record.Operation, opencdc.OperationCreate)
 
 	secondTestContactID := compareTestContactWithRecord(is, secondTestContact, record)
 
@@ -215,7 +216,7 @@ func TestSource_Read_successCDC(t *testing.T) {
 	record, err = readWithRetry(ctx, source)
 	is.NoErr(err)
 
-	is.Equal(record.Operation, sdk.OperationUpdate)
+	is.Equal(record.Operation, opencdc.OperationUpdate)
 
 	compareTestContactWithRecord(is, updatedTestContact, record)
 
@@ -288,13 +289,13 @@ func prepareConfig(t *testing.T, accessToken string) map[string]string {
 func waitTestContacts(
 	ctx context.Context,
 	hubspotClient *hubspot.Client,
-	wantRecs ...sdk.Record,
+	wantRecs ...opencdc.Record,
 ) error {
 	ticker := time.NewTicker(checkRetryTimeout)
 
 	filterGroups := make([]hubspot.SearchRequestFilterGroup, len(wantRecs))
 	for i, wantRec := range wantRecs {
-		sd := wantRec.Payload.After.(sdk.StructuredData)
+		sd := wantRec.Payload.After.(opencdc.StructuredData)
 		properties := sd["properties"].(map[string]any)
 		filters := make([]hubspot.SearchRequestFilterGroupFilter, 0)
 		for k, v := range properties {
@@ -330,15 +331,15 @@ func waitTestContacts(
 }
 
 // readWithRetry tries to read a record from a source with retry.
-func readWithRetry(ctx context.Context, source sdk.Source) (sdk.Record, error) {
+func readWithRetry(ctx context.Context, source sdk.Source) (opencdc.Record, error) {
 	ticker := time.NewTicker(checkRetryTimeout)
 
-	var record sdk.Record
+	var record opencdc.Record
 	var err error
 	for i := 0; i < maxCheckRetries; i++ {
 		select {
 		case <-ctx.Done():
-			return sdk.Record{}, ctx.Err()
+			return opencdc.Record{}, ctx.Err()
 		case <-ticker.C:
 			record, err = source.Read(ctx)
 			if errors.Is(err, sdk.ErrBackoffRetry) {
@@ -355,13 +356,13 @@ func readWithRetry(ctx context.Context, source sdk.Source) (sdk.Record, error) {
 // The method returns the test contact's id as a string.
 func compareTestContactWithRecord(
 	is *is.I,
-	want sdk.Record,
-	got sdk.Record,
+	want opencdc.Record,
+	got opencdc.Record,
 ) string {
 	is.Helper()
 
 	// unmarshal the item that was read by the source
-	gotPayload, ok := got.Payload.After.(sdk.StructuredData)
+	gotPayload, ok := got.Payload.After.(opencdc.StructuredData)
 	is.True(ok)
 
 	gotProperties, ok := gotPayload["properties"].(map[string]any)
@@ -371,7 +372,7 @@ func compareTestContactWithRecord(
 	hsObjectID, ok := gotProperties["hs_object_id"].(string)
 	is.True(ok)
 
-	gotKey, ok := got.Key.(sdk.StructuredData)
+	gotKey, ok := got.Key.(opencdc.StructuredData)
 	is.True(ok)
 
 	// convert to float64 because int is converted to float64 when unmarshaling json into map[string]any
@@ -385,7 +386,7 @@ func compareTestContactWithRecord(
 	delete(gotProperties, "createdate")
 	delete(gotProperties, "lastmodifieddate")
 
-	is.Equal(gotProperties, want.Payload.After.(sdk.StructuredData)["properties"])
+	is.Equal(gotProperties, want.Payload.After.(opencdc.StructuredData)["properties"])
 
 	return hsObjectID
 }

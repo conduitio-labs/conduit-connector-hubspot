@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
@@ -30,7 +31,7 @@ type Snapshot struct {
 	resource        string
 	bufferSize      int
 	pollingPeriod   time.Duration
-	records         chan sdk.Record
+	records         chan opencdc.Record
 	errC            chan error
 	stopC           chan struct{}
 	position        *Position
@@ -61,7 +62,7 @@ func NewSnapshot(ctx context.Context, params SnapshotParams) (*Snapshot, error) 
 		resource:         params.Resource,
 		bufferSize:       params.BufferSize,
 		pollingPeriod:    params.PollingPeriod,
-		records:          make(chan sdk.Record, params.BufferSize),
+		records:          make(chan opencdc.Record, params.BufferSize),
 		errC:             make(chan error, 1),
 		stopC:            make(chan struct{}, 1),
 		position:         params.Position,
@@ -93,13 +94,13 @@ func (s *Snapshot) HasNext(_ context.Context) (bool, error) {
 }
 
 // Next returns the next record.
-func (s *Snapshot) Next(ctx context.Context) (sdk.Record, error) {
+func (s *Snapshot) Next(ctx context.Context) (opencdc.Record, error) {
 	select {
 	case <-ctx.Done():
-		return sdk.Record{}, fmt.Errorf("context cancelled: %w", ctx.Err())
+		return opencdc.Record{}, fmt.Errorf("context cancelled: %w", ctx.Err())
 
 	case err := <-s.errC:
-		return sdk.Record{}, fmt.Errorf("async error: %w", err)
+		return opencdc.Record{}, fmt.Errorf("async error: %w", err)
 
 	case record := <-s.records:
 		return record, nil
@@ -175,8 +176,8 @@ func (s *Snapshot) loadRecords(ctx context.Context) error {
 
 		s.records <- sdk.Util.Source.NewRecordSnapshot(
 			sdkPosition, metadata,
-			sdk.StructuredData{hubspot.ResultsFieldID: s.position.ItemID},
-			sdk.StructuredData(item),
+			opencdc.StructuredData{hubspot.ResultsFieldID: s.position.ItemID},
+			opencdc.StructuredData(item),
 		)
 	}
 
@@ -271,9 +272,9 @@ func (s *Snapshot) getItemPosition(item map[string]any, timestamp time.Time) (*P
 	}, nil
 }
 
-// getItemMetadata grabs a createdAt field from a provided item and constructs a [sdk.Metadata] based on that.
+// getItemMetadata grabs a createdAt field from a provided item and constructs a [opencdc.Metadata] based on that.
 // If the createdAt field is empty the method will use the current time.
-func (s *Snapshot) getItemMetadata(item map[string]any) (metadata sdk.Metadata, err error) {
+func (s *Snapshot) getItemMetadata(item map[string]any) (metadata opencdc.Metadata, err error) {
 	createdAt := time.Now()
 
 	if createdAtStr, ok := item[hubspot.ResultsFieldCreatedAt].(string); ok {
@@ -283,7 +284,7 @@ func (s *Snapshot) getItemMetadata(item map[string]any) (metadata sdk.Metadata, 
 		}
 	}
 
-	metadata = make(sdk.Metadata)
+	metadata = make(opencdc.Metadata)
 	metadata.SetCreatedAt(createdAt)
 
 	return metadata, nil

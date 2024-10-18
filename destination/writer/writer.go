@@ -21,6 +21,7 @@ import (
 	"strconv"
 
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
@@ -44,14 +45,14 @@ func NewWriter(params Params) *Writer {
 	}
 }
 
-// Write routes a provided record to different methods based on its [sdk.Operation].
-//   - If the operation is [sdk.OperationCreate] or [sdk.OperationSnapshot]
+// Write routes a provided record to different methods based on its [opencdc.Operation].
+//   - If the operation is [opencdc.OperationCreate] or [opencdc.OperationSnapshot]
 //     the record will be plainly inserted;
-//   - If the operation is [sdk.OperationUpdate]
+//   - If the operation is [opencdc.OperationUpdate]
 //     the method will try to update an existing record using the record payload;
-//   - If the operation is [sdk.OperationDelete]
+//   - If the operation is [opencdc.OperationDelete]
 //     the method will try to delete an existing record using the record key.
-func (w *Writer) Write(ctx context.Context, record sdk.Record) error {
+func (w *Writer) Write(ctx context.Context, record opencdc.Record) error {
 	err := sdk.Util.Destination.Route(ctx, record,
 		w.insert,
 		w.update,
@@ -66,7 +67,7 @@ func (w *Writer) Write(ctx context.Context, record sdk.Record) error {
 }
 
 // insert inserts a record to a destination.
-func (w *Writer) insert(ctx context.Context, record sdk.Record) error {
+func (w *Writer) insert(ctx context.Context, record opencdc.Record) error {
 	payload, err := w.structurizeData(record.Payload.After)
 	if err != nil {
 		return fmt.Errorf("structurize payload: %w", err)
@@ -85,7 +86,7 @@ func (w *Writer) insert(ctx context.Context, record sdk.Record) error {
 }
 
 // update updates a record in a destination.
-func (w *Writer) update(ctx context.Context, record sdk.Record) error {
+func (w *Writer) update(ctx context.Context, record opencdc.Record) error {
 	key, err := w.structurizeData(record.Key)
 	if err != nil {
 		return fmt.Errorf("structurize key: %w", err)
@@ -118,7 +119,7 @@ func (w *Writer) update(ctx context.Context, record sdk.Record) error {
 }
 
 // delete deletes a record from a destination.
-func (w *Writer) delete(ctx context.Context, record sdk.Record) error {
+func (w *Writer) delete(ctx context.Context, record opencdc.Record) error {
 	key, err := w.structurizeData(record.Key)
 	if err != nil {
 		return fmt.Errorf("structurize key: %w", err)
@@ -140,17 +141,17 @@ func (w *Writer) delete(ctx context.Context, record sdk.Record) error {
 	return nil
 }
 
-// structurizeData tries to convert [sdk.Data] to [sdk.StructuredData].
-func (w *Writer) structurizeData(data sdk.Data) (sdk.StructuredData, error) {
+// structurizeData tries to convert [opencdc.Data] to [opencdc.StructuredData].
+func (w *Writer) structurizeData(data opencdc.Data) (opencdc.StructuredData, error) {
 	if data == nil || len(data.Bytes()) == 0 {
 		return nil, nil //nolint:nilnil // ignoring this validation for now
 	}
 
-	if sd, ok := data.(sdk.StructuredData); ok {
+	if sd, ok := data.(opencdc.StructuredData); ok {
 		return sd, nil
 	}
 
-	structuredData := make(sdk.StructuredData)
+	structuredData := make(opencdc.StructuredData)
 	if err := json.Unmarshal(data.Bytes(), &structuredData); err != nil {
 		return nil, fmt.Errorf("unmarshal data into structured data: %w", err)
 	}
@@ -160,7 +161,7 @@ func (w *Writer) structurizeData(data sdk.Data) (sdk.StructuredData, error) {
 
 // getKeyValue returns the first key within the Key structured data.
 // It accepts string, int and float64 key values.
-func (w *Writer) getKeyValue(key sdk.StructuredData) (string, error) {
+func (w *Writer) getKeyValue(key opencdc.StructuredData) (string, error) {
 	if len(key) > 1 {
 		return "", ErrCompositeKeysNotSupported
 	}

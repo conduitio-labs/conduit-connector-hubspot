@@ -24,6 +24,7 @@ import (
 	"github.com/conduitio-labs/conduit-connector-hubspot/config"
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
 	"github.com/conduitio-labs/conduit-connector-hubspot/source/iterator"
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/hashicorp/go-retryablehttp"
 )
@@ -31,7 +32,7 @@ import (
 // Iterator defines an Iterator interface needed for the [Source].
 type Iterator interface {
 	HasNext(ctx context.Context) (bool, error)
-	Next(ctx context.Context) (sdk.Record, error)
+	Next(ctx context.Context) (opencdc.Record, error)
 	Stop()
 }
 
@@ -48,9 +49,9 @@ func NewSource() sdk.Source {
 	return sdk.SourceWithMiddleware(&Source{}, sdk.DefaultSourceMiddleware()...)
 }
 
-// Parameters is a map of named [sdk.Parameter] that describe how to configure the [Source].
-func (s *Source) Parameters() map[string]sdk.Parameter {
-	return map[string]sdk.Parameter{
+// Parameters is a map of named [config.Parameter] that describe how to configure the [Source].
+func (s *Source) Parameters() config.Parameters {
+	return map[string]config.Parameter{
 		config.KeyAccessToken: {
 			Default:     "",
 			Required:    true,
@@ -95,7 +96,7 @@ func (s *Source) Parameters() map[string]sdk.Parameter {
 }
 
 // Configure parses and initializes the config.
-func (s *Source) Configure(_ context.Context, cfg map[string]string) (err error) {
+func (s *Source) Configure(_ context.Context, cfg config.Config) (err error) {
 	s.config, err = ParseConfig(cfg)
 	if err != nil {
 		return fmt.Errorf("parse source config: %w", err)
@@ -105,7 +106,7 @@ func (s *Source) Configure(_ context.Context, cfg map[string]string) (err error)
 }
 
 // Open makes sure everything is prepared to read records.
-func (s *Source) Open(ctx context.Context, sdkPosition sdk.Position) error {
+func (s *Source) Open(ctx context.Context, sdkPosition opencdc.Position) error {
 	retryableHTTPClient := retryablehttp.NewClient()
 	retryableHTTPClient.RetryMax = s.config.MaxRetries
 	retryableHTTPClient.Logger = sdk.Logger(ctx)
@@ -135,26 +136,26 @@ func (s *Source) Open(ctx context.Context, sdkPosition sdk.Position) error {
 
 // Read fetches a new record from an iterator.
 // If there's no record the method will return the [sdk.ErrBackoffRetry].
-func (s *Source) Read(ctx context.Context) (sdk.Record, error) {
+func (s *Source) Read(ctx context.Context) (opencdc.Record, error) {
 	hasNext, err := s.iterator.HasNext(ctx)
 	if err != nil {
-		return sdk.Record{}, fmt.Errorf("has next: %w", err)
+		return opencdc.Record{}, fmt.Errorf("has next: %w", err)
 	}
 
 	if !hasNext {
-		return sdk.Record{}, sdk.ErrBackoffRetry
+		return opencdc.Record{}, sdk.ErrBackoffRetry
 	}
 
 	record, err := s.iterator.Next(ctx)
 	if err != nil {
-		return sdk.Record{}, fmt.Errorf("get next record: %w", err)
+		return opencdc.Record{}, fmt.Errorf("get next record: %w", err)
 	}
 
 	return record, nil
 }
 
 // Ack does nothing. We don't need acks for the Snapshot or CDC iterators.
-func (s *Source) Ack(ctx context.Context, position sdk.Position) error {
+func (s *Source) Ack(ctx context.Context, position opencdc.Position) error {
 	sdk.Logger(ctx).Debug().Str("position", string(position)).Msg("got ack")
 
 	return nil

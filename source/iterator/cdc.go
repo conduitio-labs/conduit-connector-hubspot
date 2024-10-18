@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
@@ -29,7 +30,7 @@ type CDC struct {
 	resource        string
 	bufferSize      int
 	pollingPeriod   time.Duration
-	records         chan sdk.Record
+	records         chan opencdc.Record
 	errC            chan error
 	stopC           chan struct{}
 	position        *Position
@@ -53,7 +54,7 @@ func NewCDC(ctx context.Context, params CDCParams) (*CDC, error) {
 		resource:        params.Resource,
 		bufferSize:      params.BufferSize,
 		pollingPeriod:   params.PollingPeriod,
-		records:         make(chan sdk.Record, params.BufferSize),
+		records:         make(chan opencdc.Record, params.BufferSize),
 		errC:            make(chan error, 1),
 		stopC:           make(chan struct{}, 1),
 		position:        params.Position,
@@ -83,13 +84,13 @@ func (c *CDC) HasNext(_ context.Context) (bool, error) {
 }
 
 // Next returns the next record.
-func (c *CDC) Next(ctx context.Context) (sdk.Record, error) {
+func (c *CDC) Next(ctx context.Context) (opencdc.Record, error) {
 	select {
 	case <-ctx.Done():
-		return sdk.Record{}, fmt.Errorf("context cancelled: %w", ctx.Err())
+		return opencdc.Record{}, fmt.Errorf("context cancelled: %w", ctx.Err())
 
 	case err := <-c.errC:
-		return sdk.Record{}, fmt.Errorf("async error: %w", err)
+		return opencdc.Record{}, fmt.Errorf("async error: %w", err)
 
 	case record := <-c.records:
 		return record, nil
@@ -204,7 +205,7 @@ func (c *CDC) fetchSearchBasedItems(
 }
 
 // routeItem retrives createdAt and updatedAt fields from the item, compares them
-// and based on the result of the comparison decides to send a Create or Update sdk.Record.
+// and based on the result of the comparison decides to send a Create or Update opencdc.Record.
 func (c *CDC) routeItem(
 	item hubspot.ListResponseResult,
 	createdAtFieldName,
@@ -230,7 +231,7 @@ func (c *CDC) routeItem(
 		}
 	}
 
-	metadata := make(sdk.Metadata)
+	metadata := make(opencdc.Metadata)
 	metadata.SetCreatedAt(itemCreatedAt)
 
 	// set the timestamp to the item's updatedAt
@@ -258,30 +259,30 @@ func (c *CDC) getRecord(item hubspot.ListResponseResult,
 	itemCreatedAt,
 	itemDeletedAt,
 	updatedAfter time.Time,
-	sdkPosition sdk.Position,
-	metadata sdk.Metadata,
-) sdk.Record {
+	sdkPosition opencdc.Position,
+	metadata opencdc.Metadata,
+) opencdc.Record {
 	// if an item is not deleted the HubSpot returns the deletedAt field value
 	// equal to Unix Epoch (1970-01-01T00:00:00Z).
 	// So if the itemDeletedAt.Unix() is not equal to 0, than the item is deleted.
 	if itemDeletedAt.Unix() > 0 {
 		return sdk.Util.Source.NewRecordDelete(sdkPosition, metadata,
-			sdk.StructuredData{hubspot.ResultsFieldID: c.position.ItemID},
+			opencdc.StructuredData{hubspot.ResultsFieldID: c.position.ItemID},
 		)
 	}
 
 	// if the item's createdAt is after the timestamp after which we're searching items
-	// we consider the item's operation to be sdk.OperationCreate.
+	// we consider the item's operation to be opencdc.OperationCreate.
 	if itemCreatedAt.After(updatedAfter) {
 		return sdk.Util.Source.NewRecordCreate(sdkPosition, metadata,
-			sdk.StructuredData{hubspot.ResultsFieldID: c.position.ItemID},
-			sdk.StructuredData(item),
+			opencdc.StructuredData{hubspot.ResultsFieldID: c.position.ItemID},
+			opencdc.StructuredData(item),
 		)
 	}
 
 	return sdk.Util.Source.NewRecordUpdate(sdkPosition, metadata,
-		sdk.StructuredData{hubspot.ResultsFieldID: c.position.ItemID},
-		nil, sdk.StructuredData(item),
+		opencdc.StructuredData{hubspot.ResultsFieldID: c.position.ItemID},
+		nil, opencdc.StructuredData(item),
 	)
 }
 

@@ -23,13 +23,14 @@ import (
 	"github.com/conduitio-labs/conduit-connector-hubspot/config"
 	"github.com/conduitio-labs/conduit-connector-hubspot/destination/writer"
 	"github.com/conduitio-labs/conduit-connector-hubspot/hubspot"
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/hashicorp/go-retryablehttp"
 )
 
 // Writer is a writer interface needed for the [Destination].
 type Writer interface {
-	Write(ctx context.Context, record sdk.Record) error
+	Write(ctx context.Context, record opencdc.Record) error
 }
 
 // Destination is a HubSpot destination plugin.
@@ -45,9 +46,9 @@ func NewDestination() sdk.Destination {
 	return sdk.DestinationWithMiddleware(&Destination{}, sdk.DefaultDestinationMiddleware()...)
 }
 
-// Parameters is a map of named [sdk.Parameter] that describe how to configure the [Destination].
-func (d *Destination) Parameters() map[string]sdk.Parameter {
-	return map[string]sdk.Parameter{
+// Parameters is a map of named [config.Parameter] that describe how to configure the [Destination].
+func (d *Destination) Parameters() config.Parameters {
+	return map[string]config.Parameter{
 		config.KeyAccessToken: {
 			Default:     "",
 			Required:    true,
@@ -68,7 +69,7 @@ func (d *Destination) Parameters() map[string]sdk.Parameter {
 }
 
 // Configure parses and initializes the config.
-func (d *Destination) Configure(_ context.Context, cfg map[string]string) (err error) {
+func (d *Destination) Configure(_ context.Context, cfg config.Config) (err error) {
 	d.config, err = config.Parse(cfg)
 	if err != nil {
 		return fmt.Errorf("parse destination config: %w", err)
@@ -94,7 +95,7 @@ func (d *Destination) Open(ctx context.Context) error {
 }
 
 // Write needs to be overridden in the actual implementation.
-func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, error) {
+func (d *Destination) Write(ctx context.Context, records []opencdc.Record) (int, error) {
 	for i, record := range records {
 		if err := d.writer.Write(ctx, record); err != nil {
 			return i, fmt.Errorf("write record: %w", err)
