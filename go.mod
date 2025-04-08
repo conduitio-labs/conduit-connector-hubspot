@@ -1,6 +1,7 @@
 module github.com/conduitio-labs/conduit-connector-hubspot
 
 go 1.24.2
+
 require (
 	github.com/brianvoe/gofakeit/v6 v6.28.0
 	github.com/conduitio/conduit-commons v0.5.2
@@ -10,7 +11,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/matryer/is v1.4.1
 	go.uber.org/goleak v1.3.0
-	go.uber.org/mock v0.5.0
+	go.uber.org/mock v0.5.1
 	go.uber.org/multierr v1.11.0
 )
 
