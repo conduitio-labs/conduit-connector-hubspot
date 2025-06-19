@@ -8,7 +8,7 @@ require (
 	github.com/conduitio/conduit-connector-sdk v0.12.0
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/google/go-querystring v1.1.0
-	github.com/hashicorp/go-retryablehttp v0.7.7
+	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/matryer/is v1.4.1
 	go.uber.org/goleak v1.3.0
 	go.uber.org/mock v0.5.2
